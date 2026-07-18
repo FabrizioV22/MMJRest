@@ -1,9 +1,31 @@
 import { supabase } from '../lib/supabase'
 
 export const catalogService = {
-  // Categorías
+  // --- ÁREAS ---
+  getAreas: async () => {
+    const { data, error } = await supabase.from('areas').select('*').order('nombre', { ascending: true })
+    if (error) throw error
+    return data
+  },
+  createArea: async (payload) => {
+    const { data, error } = await supabase.from('areas').insert([payload]).select().single()
+    if (error) throw error
+    return data
+  },
+  updateArea: async (id, payload) => {
+    const { data, error } = await supabase.from('areas').update(payload).eq('id', id).select().single()
+    if (error) throw error
+    return data
+  },
+  deleteArea: async (id) => {
+    const { error } = await supabase.from('areas').delete().eq('id', id)
+    if (error) throw error
+    return true
+  },
+
+  // --- CATEGORÍAS ---
   getCategories: async () => {
-    const { data, error } = await supabase.from('categorias').select('*').order('nombre')
+    const { data, error } = await supabase.from('categorias').select('*, areas(nombre)').order('nombre', { ascending: true })
     if (error) throw error
     return data
   },
