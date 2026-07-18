@@ -3,9 +3,11 @@ import {
   Plus, Search, Edit2, Trash2, Package, X, Loader2, ChevronRight, FolderOpen, 
   ArrowDownCircle, ArrowUpCircle, Clock, Home, Settings
 } from 'lucide-react'
+import { useLocation } from 'react-router-dom'
 import { catalogService } from '../../services/catalogService'
 
 export function CatalogModule() {
+  const location = useLocation()
   const [categories, setCategories] = useState([])
   const [products, setProducts] = useState([])
   const [isLoading, setIsLoading] = useState(true)
@@ -41,6 +43,21 @@ export function CatalogModule() {
   useEffect(() => {
     fetchData()
   }, [])
+
+  useEffect(() => {
+    // Deep linking desde el Dashboard u otras vistas
+    if (products.length > 0 && categories.length > 0 && location.state) {
+      if (location.state.openCategoryId) {
+        setActiveCategoryId(location.state.openCategoryId)
+      }
+      if (location.state.openProductId) {
+        const prod = products.find(p => p.id === location.state.openProductId)
+        if (prod) handleOpenProduct(prod)
+      }
+      // Limpiar state para evitar loop en recargas
+      window.history.replaceState({}, document.title)
+    }
+  }, [location.state, products, categories])
 
   const fetchData = async () => {
     setIsLoading(true)

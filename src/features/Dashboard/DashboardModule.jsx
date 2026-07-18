@@ -8,12 +8,24 @@ export function DashboardModule() {
   const [stats, setStats] = useState(null)
   const [lowStock, setLowStock] = useState([])
   const [recentMovements, setRecentMovements] = useState([])
+  
+  // Data for chart and filtering
+  const [allMovements, setAllMovements] = useState([])
   const [chartData, setChartData] = useState([])
+  const [availableCategories, setAvailableCategories] = useState([])
+  const [filterCategory, setFilterCategory] = useState('ALL')
+  
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     fetchDashboardData()
   }, [])
+
+  useEffect(() => {
+    if (allMovements.length > 0) {
+      processChartData(allMovements, filterCategory)
+    }
+  }, [filterCategory, allMovements])
 
   const fetchDashboardData = async () => {
     setIsLoading(true)
@@ -28,34 +40,16 @@ export function DashboardModule() {
       setStats(globalStats)
       setLowStock(lowItems)
       setRecentMovements(recentMovs)
+      setAllMovements(rawMovs)
       
-      // Procesar datos para el gráfico (Últimos 7 días con actividad)
-      const dataMap = {}
-      rawMovs.forEach(mov => {
-        const date = new Date(mov.fecha).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })
-        if (!dataMap[date]) {
-          dataMap[date] = { name: date, ingresos: 0, egresos: 0 }
-        }
-        if (mov.tipo_movimiento === 'INGRESO' || mov.tipo_movimiento === 'SALDO_INICIAL') {
-          dataMap[date].ingresos += Number(mov.cantidad)
-        } else if (mov.tipo_movimiento === 'EGRESO') {
-          dataMap[date].egresos += Number(mov.cantidad)
+      // Extract unique categories for the filter
+      const cats = new Map()
+      rawMovs.forEach(m => {
+        if (m.productos?.categorias) {
+          cats.set(m.productos.categoria_id, m.productos.categorias)
         }
       })
-      
-      // Convertir a array, ordenar por fecha (simplificado asumiendo orden de rawMovs) y tomar los últimos 7
-      const chartArray = Object.values(dataMap).reverse().slice(-7)
-      
-      // Si no hay datos, mostrar algo por defecto para que no se vea vacío
-      if (chartArray.length === 0) {
-        setChartData([
-          { name: 'Lun', ingresos: 0, egresos: 0 },
-          { name: 'Mar', ingresos: 0, egresos: 0 },
-          { name: 'Mié', ingresos: 0, egresos: 0 }
-        ])
-      } else {
-        setChartData(chartArray)
-      }
+      setAvailableCategories(Array.from(cats.values()))
 
     } catch (error) {
       console.error(error)
@@ -63,6 +57,75 @@ export function DashboardModule() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const processChartData = (rawMovs, categoryId) => {
+    const dataMap = {}
+    
+    // Filter by category if not 'ALL'
+    const filtered = categoryId === 'ALL' 
+      ? rawMovs 
+      : rawMovs.filter(m => m.productos?.categoria_id === categoryId)
+
+    filtered.forEach(mov => {
+      const date = new Date(mov.fecha).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })
+      if (!dataMap[date]) {
+        dataMap[date] = { name: date, ingresos: 0, egresos: 0, details: [] }
+      }
+      
+      const amount = Number(mov.cantidad)
+      if (mov.tipo_movimiento === 'INGRESO' || mov.tipo_movimiento === 'SALDO_INICIAL') {
+        dataMap[date].ingresos += amount
+      } else if (mov.tipo_movimiento === 'EGRESO') {
+        dataMap[date].egresos += amount
+      }
+      
+      // Keep track of products moved for the tooltip
+      if (mov.productos?.nombre) {
+        dataMap[date].details.push(`${mov.tipo_movimiento === 'EGRESO' ? '-' : '+'}${amount} ${mov.productos.nombre}`)
+      }
+    })
+    
+    const chartArray = Object.values(dataMap).reverse().slice(-7)
+    
+    if (chartArray.length === 0) {
+      setChartData([
+        { name: 'Lun', ingresos: 0, egresos: 0, details: [] },
+        { name: 'Mar', ingresos: 0, egresos: 0, details: [] }
+      ])
+    } else {
+      setChartData(chartArray)
+    }
+  }
+
+  // Custom Tooltip for Recharts to show product details
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      // Deduplicate and limit details
+      const uniqueDetails = Array.from(new Set(data.details)).slice(0, 5);
+      return (
+        <div className="bg-white p-3 rounded-xl shadow-lg border border-gray-100 text-sm">
+          <p className="font-bold text-gray-800 mb-2">{label}</p>
+          <div className="flex space-x-4 mb-2">
+            <p className="text-green-600 font-bold">Ingresos: {data.ingresos}</p>
+            <p className="text-red-600 font-bold">Egresos: {data.egresos}</p>
+          </div>
+          {uniqueDetails.length > 0 && (
+            <div className="text-xs text-gray-500 border-t pt-2">
+              <p className="font-semibold mb-1">Movimientos destacados:</p>
+              <ul className="space-y-1">
+                {uniqueDetails.map((det, i) => (
+                  <li key={i}>{det}</li>
+                ))}
+                {data.details.length > 5 && <li>... y más</li>}
+              </ul>
+            </div>
+          )}
+        </div>
+      )
+    }
+    return null;
   }
 
   if (isLoading) {
@@ -120,8 +183,18 @@ export function DashboardModule() {
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-2">
               <Activity className="text-blue-500" size={20} />
-              <h3 className="text-lg font-bold text-gray-800">Flujo de Inventario (Últimos Días)</h3>
+              <h3 className="text-lg font-bold text-gray-800">Flujo de Inventario</h3>
             </div>
+            <select 
+              value={filterCategory} 
+              onChange={(e) => setFilterCategory(e.target.value)}
+              className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 outline-none"
+            >
+              <option value="ALL">Todas las Áreas</option>
+              {availableCategories.map(cat => (
+                <option key={cat.id} value={cat.id}>{cat.nombre}</option>
+              ))}
+            </select>
           </div>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -139,10 +212,7 @@ export function DashboardModule() {
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dy={10} />
                 <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
-                <Tooltip 
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                  itemStyle={{ fontWeight: 'bold' }}
-                />
+                <Tooltip content={<CustomTooltip />} />
                 <Area type="monotone" name="Ingresos" dataKey="ingresos" stroke="#22c55e" strokeWidth={3} fillOpacity={1} fill="url(#colorIngresos)" />
                 <Area type="monotone" name="Egresos" dataKey="egresos" stroke="#ef4444" strokeWidth={3} fillOpacity={1} fill="url(#colorEgresos)" />
               </AreaChart>
@@ -167,16 +237,21 @@ export function DashboardModule() {
             ) : (
               <ul className="divide-y divide-gray-50">
                 {lowStock.map(item => (
-                  <li key={item.id} className="p-4 hover:bg-gray-50 transition-colors flex justify-between items-center">
+                  <Link 
+                    to="/inventario" 
+                    state={{ openCategoryId: item.categorias?.id || item.categoria_id, openProductId: item.id }} 
+                    key={item.id} 
+                    className="p-4 hover:bg-red-50 transition-colors flex justify-between items-center block cursor-pointer group"
+                  >
                     <div>
-                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">{item.categorias?.nombre}</p>
-                      <h4 className="font-semibold text-gray-800">{item.nombre}</h4>
+                      <p className="text-xs font-bold text-gray-400 group-hover:text-red-400 uppercase tracking-wide">{item.categorias?.nombre}</p>
+                      <h4 className="font-semibold text-gray-800 group-hover:text-red-700 transition-colors">{item.nombre}</h4>
                     </div>
                     <div className="text-right">
                       <span className="text-lg font-black text-red-600">{item.stock_actual}</span>
                       <span className="text-xs text-gray-500 ml-1">{item.unidad_medida}</span>
                     </div>
-                  </li>
+                  </Link>
                 ))}
               </ul>
             )}
