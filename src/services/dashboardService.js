@@ -5,6 +5,7 @@ export const dashboardService = {
     const { data, error } = await supabase
       .from('productos')
       .select('id, nombre, stock_actual, unidad_medida, categorias(nombre)')
+      .eq('activo', true)
       .lte('stock_actual', threshold)
       .order('stock_actual', { ascending: true })
       .limit(8)
@@ -23,17 +24,28 @@ export const dashboardService = {
   },
 
   getGlobalStats: async () => {
-    const { count: prodCount, error: err1 } = await supabase.from('productos').select('*', { count: 'exact', head: true })
-    const { count: catCount, error: err2 } = await supabase.from('categorias').select('*', { count: 'exact', head: true })
-    const { count: lowStockCount, error: err3 } = await supabase.from('productos').select('*', { count: 'exact', head: true }).lte('stock_actual', 15)
-    
-    if (err1 || err2 || err3) throw new Error("Error fetching stats")
+    // Total de productos activos
+    const { count: totalProducts, error: err1 } = await supabase
+      .from('productos')
+      .select('*', { count: 'exact', head: true })
+      .eq('activo', true)
+      
+    // Total de categorías activas
+    const { count: totalCategories, error: err2 } = await supabase
+      .from('categorias')
+      .select('*', { count: 'exact', head: true })
+      .eq('activo', true)
 
-    return {
-      totalProducts: prodCount || 0,
-      totalCategories: catCount || 0,
-      lowStockItems: lowStockCount || 0
-    }
+    // Items con stock bajo activos (menor a 10)
+    const { count: lowStockItems, error: err3 } = await supabase
+      .from('productos')
+      .select('*', { count: 'exact', head: true })
+      .eq('activo', true)
+      .lt('stock_actual', 10)
+
+    if (err1 || err2 || err3) throw new Error('Error fetching stats')
+
+    return { totalProducts, totalCategories, lowStockItems }
   },
 
   // Obtiene movimientos recientes para procesarlos en el frontend y armar la gráfica
