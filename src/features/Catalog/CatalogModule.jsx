@@ -268,19 +268,24 @@ export function CatalogModule() {
     setIsSubmitting(true)
     try {
       if (deleteType === 'PRODUCT') {
+        // La base de datos arrojará error de llave foránea si tiene historial (kardex)
         await catalogService.deleteProduct(itemToDelete.id)
         if (activeProductId === itemToDelete.id) handleOpenCategory(activeCategoryId)
       } else if (deleteType === 'CATEGORY') {
+        const hasProducts = products.some(p => p.categoria_id === itemToDelete.id)
+        if (hasProducts) throw new Error('No se puede eliminar la categoría porque contiene productos dentro.')
         await catalogService.deleteCategory(itemToDelete.id)
         if (activeCategoryId === itemToDelete.id) handleOpenArea(activeAreaId)
       } else if (deleteType === 'AREA') {
+        const hasCategories = categories.some(c => c.area_id === itemToDelete.id)
+        if (hasCategories) throw new Error('No se puede eliminar el área porque contiene categorías dentro.')
         await catalogService.deleteArea(itemToDelete.id)
         if (activeAreaId === itemToDelete.id) handleGoHome()
       }
       await fetchData()
       cancelView()
     } catch (error) {
-      alert('No se pudo eliminar. Verifica que no tenga items dentro ni movimientos en el historial.')
+      alert(error.message || 'No se pudo eliminar. Verifica que no tenga items dentro ni movimientos en el historial.')
     } finally {
       setIsSubmitting(false)
     }

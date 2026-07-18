@@ -164,7 +164,7 @@ export function DashboardModule() {
             <FolderOpen size={28} />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Áreas Activas</p>
+            <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Categorías Activas</p>
             <h3 className="text-3xl font-black text-gray-900">{stats?.totalCategories}</h3>
           </div>
         </div>
