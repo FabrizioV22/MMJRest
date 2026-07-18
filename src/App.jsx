@@ -2,6 +2,7 @@ import React from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Layout } from './components/Layout'
 import { CatalogModule } from './features/Catalog/CatalogModule'
+import { KardexModule } from './features/Kardex/KardexModule'
 
 function App() {
   return (
@@ -10,7 +11,7 @@ function App() {
         <Routes>
           <Route path="/" element={<div className="p-8 text-center text-gray-500">Bienvenido al Sistema de Inventario. Seleccione una opción.</div>} />
           <Route path="/catalogo" element={<CatalogModule />} />
-          <Route path="/kardex" element={<div className="p-8 text-center text-gray-500">Módulo Kardex (En construcción)</div>} />
+          <Route path="/kardex" element={<KardexModule />} />
           <Route path="/caja" element={<div className="p-8 text-center text-gray-500">Módulo Caja (En construcción)</div>} />
         </Routes>
       </Layout>
