@@ -17,7 +17,7 @@ export function Layout({ children }) {
       {/* Sidebar for Desktop */}
       <aside className="hidden md:flex flex-col w-64 bg-white border-r border-gray-200">
         <div className="p-4 border-b border-gray-200">
-          <h1 className="text-xl font-bold text-gray-800">Inventario Pro</h1>
+          <h1 className="text-xl font-bold text-gray-800">Inventario Mama Julia</h1>
         </div>
         <nav className="flex-1 p-4 space-y-2">
           {navItems.map((item) => {
