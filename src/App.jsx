@@ -14,6 +14,21 @@ function AppRoutes() {
     return <LoginModule />
   }
 
+  // Si el usuario está inactivo, lo bloqueamos
+  if (userProfile?.activo === false) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="text-center p-8 bg-white rounded-2xl card-soft border border-slate-100 max-w-md">
+          <h2 className="text-xl font-bold text-red-600 mb-2">Cuenta Desactivada</h2>
+          <p className="text-slate-500 mb-6">Tu cuenta ha sido desactivada por el Administrador. No tienes acceso al sistema.</p>
+          <button onClick={() => {
+            import('./services/authService').then(m => m.authService.logout())
+          }} className="px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg font-bold text-sm transition-colors">Cerrar Sesión</button>
+        </div>
+      </div>
+    )
+  }
+
   // Si el usuario está pendiente, no lo dejamos ver nada
   if (userProfile?.rol === 'PENDIENTE') {
     return (

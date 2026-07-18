@@ -18,9 +18,12 @@ export const catalogService = {
     return data
   },
   deleteArea: async (id) => {
-    // Soft Delete
-    const { error } = await supabase.from('areas').update({ activo: false }).eq('id', id)
-    if (error) throw error
+    // Hard Delete (solo posible si no tiene categorías)
+    const { error } = await supabase.from('areas').delete().eq('id', id)
+    if (error) {
+      if (error.code === '23503') throw new Error('No se puede eliminar porque contiene categorías.');
+      throw error;
+    }
     return true
   },
 
@@ -44,9 +47,12 @@ export const catalogService = {
   },
 
   deleteCategory: async (id) => {
-    // Soft Delete
-    const { error } = await supabase.from('categorias').update({ activo: false }).eq('id', id)
-    if (error) throw error
+    // Hard Delete (solo posible si no tiene productos)
+    const { error } = await supabase.from('categorias').delete().eq('id', id)
+    if (error) {
+      if (error.code === '23503') throw new Error('No se puede eliminar porque contiene productos.');
+      throw error;
+    }
     return true
   },
 

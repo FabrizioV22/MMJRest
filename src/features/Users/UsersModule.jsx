@@ -32,6 +32,19 @@ export function UsersModule() {
     }
   }
 
+  const handleStatusChange = async (userId, currentStatus) => {
+    const newStatus = !currentStatus
+    if (!window.confirm(`¿Estás seguro de ${newStatus ? 'reactivar' : 'desactivar'} a este usuario?`)) return
+    
+    try {
+      setUsers(users.map(u => u.id === userId ? { ...u, activo: newStatus } : u)) // optimistic update
+      await userService.updateUser(userId, { activo: newStatus })
+    } catch (err) {
+      alert("Error actualizando estado")
+      loadUsers() // revert on fail
+    }
+  }
+
   if (loading) return <div className="p-8 text-center text-slate-500"><Loader2 className="animate-spin inline-block" /> Cargando personal...</div>
 
   return (
@@ -60,7 +73,7 @@ export function UsersModule() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 text-[11px] uppercase tracking-wider text-slate-400 border-b border-slate-100">
-                <th className="p-4 font-bold">Email (ID Supabase)</th>
+                <th className="p-4 font-bold">Estado</th>
                 <th className="p-4 font-bold">Nombre Completo</th>
                 <th className="p-4 font-bold">Rol Actual</th>
                 <th className="p-4 font-bold text-right">Acciones</th>
@@ -68,8 +81,20 @@ export function UsersModule() {
             </thead>
             <tbody className="divide-y divide-slate-50">
               {users.map(user => (
-                <tr key={user.id} className="hover:bg-slate-50/50">
-                  <td className="p-4 text-xs font-mono text-slate-500">{user.id}</td>
+                <tr key={user.id} className={`hover:bg-slate-50/50 ${!user.activo ? 'opacity-60 grayscale' : ''}`}>
+                  <td className="p-4">
+                    <button 
+                      onClick={() => handleStatusChange(user.id, user.activo)}
+                      className={`px-3 py-1 text-xs font-bold rounded-full transition-colors cursor-pointer ${
+                        user.activo 
+                          ? 'bg-emerald-100 text-emerald-700 hover:bg-red-100 hover:text-red-700' 
+                          : 'bg-red-100 text-red-700 hover:bg-emerald-100 hover:text-emerald-700'
+                      }`}
+                      title={user.activo ? "Clic para Desactivar" : "Clic para Reactivar"}
+                    >
+                      {user.activo ? 'Activo' : 'Desactivado'}
+                    </button>
+                  </td>
                   <td className="p-4 font-bold text-sm text-slate-800">{user.nombre_completo || 'Sin nombre'}</td>
                   <td className="p-4">
                     <span className={`inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs font-bold ${
@@ -86,7 +111,8 @@ export function UsersModule() {
                     <select 
                       value={user.rol}
                       onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                      className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 outline-none cursor-pointer hover:border-emerald-500 transition-colors"
+                      disabled={!user.activo}
+                      className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 outline-none cursor-pointer hover:border-emerald-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <option value="PENDIENTE">PENDIENTE (Sin acceso)</option>
                       <option value="MESERO">MESERO (Caja)</option>

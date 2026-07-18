@@ -63,7 +63,7 @@ export function Layout({ children }) {
         <div className="p-4 border-t border-white/10 space-y-2">
           <button 
             onClick={() => authService.logout()}
-            className="w-full flex items-center justify-center space-x-2 p-2 text-slate-400 hover:text-red-400 hover:bg-white/5 rounded-lg transition-colors cursor-pointer"
+            className="w-full flex items-center justify-center space-x-2 p-3 text-red-400 bg-red-400/10 hover:bg-red-400/20 hover:text-red-300 rounded-xl transition-colors cursor-pointer shadow-sm"
           >
             <LogOut size={16} />
             <span className="text-sm font-medium">Cerrar Sesión</span>
@@ -101,7 +101,7 @@ export function Layout({ children }) {
         })}
         <button
           onClick={() => authService.logout()}
-          className="flex flex-col items-center justify-center w-full py-2 space-y-0.5 text-slate-500 hover:text-red-400 rounded-xl cursor-pointer transition-all"
+          className="flex flex-col items-center justify-center w-full py-2 space-y-0.5 text-red-400 hover:text-red-300 rounded-xl cursor-pointer transition-all"
         >
           <LogOut size={22} strokeWidth={1.5} />
           <span className="text-[10px] font-bold tracking-wide uppercase">Salir</span>
