@@ -8,6 +8,24 @@ export const catalogService = {
     return data
   },
 
+  createCategory: async (categoryData) => {
+    const { data, error } = await supabase.from('categorias').insert([categoryData]).select()
+    if (error) throw error
+    return data[0]
+  },
+
+  updateCategory: async (id, categoryData) => {
+    const { data, error } = await supabase.from('categorias').update(categoryData).eq('id', id).select()
+    if (error) throw error
+    return data[0]
+  },
+
+  deleteCategory: async (id) => {
+    const { error } = await supabase.from('categorias').delete().eq('id', id)
+    if (error) throw error
+    return true
+  },
+
   // Productos
   getProducts: async () => {
     const { data, error } = await supabase.from('productos').select('*, categorias(nombre)').order('nombre')
