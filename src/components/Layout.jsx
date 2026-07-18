@@ -7,8 +7,7 @@ export function Layout({ children }) {
 
   const navItems = [
     { name: 'Inicio', path: '/', icon: LayoutDashboard },
-    { name: 'Catálogo', path: '/catalogo', icon: Package },
-    { name: 'Kardex', path: '/kardex', icon: ClipboardList },
+    { name: 'Inventario', path: '/inventario', icon: Package },
     { name: 'Caja', path: '/caja', icon: Wallet },
   ]
 
