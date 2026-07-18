@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase'
 export const catalogService = {
   // --- ÁREAS ---
   getAreas: async () => {
-    const { data, error } = await supabase.from('areas').select('*').order('nombre', { ascending: true })
+    const { data, error } = await supabase.from('areas').select('*').eq('activo', true).order('nombre', { ascending: true })
     if (error) throw error
     return data
   },
@@ -18,57 +18,60 @@ export const catalogService = {
     return data
   },
   deleteArea: async (id) => {
-    const { error } = await supabase.from('areas').delete().eq('id', id)
+    // Soft Delete
+    const { error } = await supabase.from('areas').update({ activo: false }).eq('id', id)
     if (error) throw error
     return true
   },
 
   // --- CATEGORÍAS ---
   getCategories: async () => {
-    const { data, error } = await supabase.from('categorias').select('*, areas(nombre)').order('nombre', { ascending: true })
+    const { data, error } = await supabase.from('categorias').select('*, areas(nombre)').eq('activo', true).order('nombre', { ascending: true })
     if (error) throw error
     return data
   },
 
-  createCategory: async (categoryData) => {
-    const { data, error } = await supabase.from('categorias').insert([categoryData]).select()
+  createCategory: async (payload) => {
+    const { data, error } = await supabase.from('categorias').insert([payload]).select().single()
     if (error) throw error
-    return data[0]
+    return data
   },
 
-  updateCategory: async (id, categoryData) => {
-    const { data, error } = await supabase.from('categorias').update(categoryData).eq('id', id).select()
+  updateCategory: async (id, payload) => {
+    const { data, error } = await supabase.from('categorias').update(payload).eq('id', id).select().single()
     if (error) throw error
-    return data[0]
+    return data
   },
 
   deleteCategory: async (id) => {
-    const { error } = await supabase.from('categorias').delete().eq('id', id)
+    // Soft Delete
+    const { error } = await supabase.from('categorias').update({ activo: false }).eq('id', id)
     if (error) throw error
     return true
   },
 
   // Productos
   getProducts: async () => {
-    const { data, error } = await supabase.from('productos').select('*, categorias(nombre)').order('nombre')
+    const { data, error } = await supabase.from('productos').select('*, categorias(nombre)').eq('activo', true).order('nombre')
     if (error) throw error
     return data
   },
 
-  createProduct: async (productData) => {
-    const { data, error } = await supabase.from('productos').insert([productData]).select('*, categorias(nombre)')
+  createProduct: async (payload) => {
+    const { data, error } = await supabase.from('productos').insert([payload]).select('*, categorias(nombre)').single()
     if (error) throw error
-    return data[0]
+    return data
   },
 
-  updateProduct: async (id, productData) => {
-    const { data, error } = await supabase.from('productos').update(productData).eq('id', id).select('*, categorias(nombre)')
+  updateProduct: async (id, payload) => {
+    const { data, error } = await supabase.from('productos').update(payload).eq('id', id).select('*, categorias(nombre)').single()
     if (error) throw error
-    return data[0]
+    return data
   },
 
   deleteProduct: async (id) => {
-    const { error } = await supabase.from('productos').delete().eq('id', id)
+    // Soft Delete
+    const { error } = await supabase.from('productos').update({ activo: false }).eq('id', id)
     if (error) throw error
     return true
   },

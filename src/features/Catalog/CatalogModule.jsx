@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { 
-  Plus, Search, Edit2, Trash2, Package, X, Loader2, ChevronRight, FolderOpen, 
+  Plus, Search, Edit2, Archive, Package, X, Loader2, ChevronRight, FolderOpen, 
   ArrowDownCircle, ArrowUpCircle, Clock, Home, Settings, Layers
 } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
@@ -258,7 +258,7 @@ export function CatalogModule() {
     finally { setIsSubmitting(false) }
   }
 
-  // --- ELIMINAR ---
+  // --- ARCHIVAR (Soft Delete) ---
   const confirmDelete = (e, item, type) => {
     if (e) e.stopPropagation()
     setItemToDelete(item)
@@ -268,24 +268,20 @@ export function CatalogModule() {
     setIsSubmitting(true)
     try {
       if (deleteType === 'PRODUCT') {
-        // La base de datos arrojará error de llave foránea si tiene historial (kardex)
         await catalogService.deleteProduct(itemToDelete.id)
         if (activeProductId === itemToDelete.id) handleOpenCategory(activeCategoryId)
       } else if (deleteType === 'CATEGORY') {
-        const hasProducts = products.some(p => p.categoria_id === itemToDelete.id)
-        if (hasProducts) throw new Error('No se puede eliminar la categoría porque contiene productos dentro.')
+        // Al archivar, no nos preocupamos tanto por los hijos ya que no se rompe la BD, pero podemos advertir
         await catalogService.deleteCategory(itemToDelete.id)
         if (activeCategoryId === itemToDelete.id) handleOpenArea(activeAreaId)
       } else if (deleteType === 'AREA') {
-        const hasCategories = categories.some(c => c.area_id === itemToDelete.id)
-        if (hasCategories) throw new Error('No se puede eliminar el área porque contiene categorías dentro.')
         await catalogService.deleteArea(itemToDelete.id)
         if (activeAreaId === itemToDelete.id) handleGoHome()
       }
       await fetchData()
       cancelView()
     } catch (error) {
-      alert(error.message || 'No se pudo eliminar. Verifica que no tenga items dentro ni movimientos en el historial.')
+      alert(error.message || 'Error al archivar el elemento.')
     } finally {
       setIsSubmitting(false)
     }
@@ -427,7 +423,7 @@ export function CatalogModule() {
               <div key={area.id} onClick={() => handleOpenArea(area.id)} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md hover:border-blue-300 transition-all cursor-pointer group flex flex-col items-center justify-center text-center space-y-3 relative">
                 <div className="absolute top-2 right-2 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button onClick={(e) => openEditArea(e, area)} className="p-1.5 text-gray-400 hover:text-blue-600 bg-white rounded-md"><Edit2 size={14}/></button>
-                  <button onClick={(e) => confirmDelete(e, area, 'AREA')} className="p-1.5 text-gray-400 hover:text-red-600 bg-white rounded-md"><Trash2 size={14}/></button>
+                  <button onClick={(e) => confirmDelete(e, area, 'AREA')} className="p-1.5 text-gray-400 hover:text-orange-600 bg-white rounded-md"><Archive size={14}/></button>
                 </div>
                 <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
                   <Layers size={32} />
@@ -457,7 +453,7 @@ export function CatalogModule() {
               <div key={cat.id} onClick={() => handleOpenCategory(cat.id)} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md hover:border-blue-300 transition-all cursor-pointer group flex flex-col items-center justify-center text-center space-y-3 relative">
                 <div className="absolute top-2 right-2 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button onClick={(e) => openEditCategory(e, cat)} className="p-1.5 text-gray-400 hover:text-blue-600 bg-white rounded-md"><Edit2 size={14}/></button>
-                  <button onClick={(e) => confirmDelete(e, cat, 'CATEGORY')} className="p-1.5 text-gray-400 hover:text-red-600 bg-white rounded-md"><Trash2 size={14}/></button>
+                  <button onClick={(e) => confirmDelete(e, cat, 'CATEGORY')} className="p-1.5 text-gray-400 hover:text-orange-600 bg-white rounded-md"><Archive size={14}/></button>
                 </div>
                 <div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
                   <FolderOpen size={28} />
@@ -520,7 +516,7 @@ export function CatalogModule() {
               </div>
               <div className="flex space-x-2">
                 <button onClick={(e) => openEditProduct(e, activeProductObj)} className="flex items-center px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium"><Settings size={18} className="mr-2" /> Configurar</button>
-                <button onClick={(e) => confirmDelete(e, activeProductObj, 'PRODUCT')} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><Trash2 size={20} /></button>
+                <button onClick={(e) => confirmDelete(e, activeProductObj, 'PRODUCT')} className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg flex items-center font-medium"><Archive size={18} className="mr-2" /> Archivar</button>
               </div>
             </div>
 
@@ -587,16 +583,16 @@ export function CatalogModule() {
         </div>
       )}
 
-      {/* MODAL ELIMINAR */}
+      {/* MODAL ARCHIVAR */}
       {itemToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center animate-in zoom-in-95">
-            <Trash2 className="text-red-600 w-12 h-12 mx-auto mb-4 bg-red-100 p-2 rounded-full" />
-            <h3 className="text-xl font-bold">¿Eliminar {deleteType==='AREA'?'Área':deleteType==='CATEGORY'?'Categoría':'Producto'}?</h3>
-            <p className="text-gray-500 text-sm mt-2 mb-6">Vas a eliminar <strong>{itemToDelete.nombre}</strong> permanentemente.</p>
+            <Archive className="text-orange-600 w-12 h-12 mx-auto mb-4 bg-orange-100 p-2 rounded-full" />
+            <h3 className="text-xl font-bold">¿Archivar {deleteType==='AREA'?'Área':deleteType==='CATEGORY'?'Categoría':'Producto'}?</h3>
+            <p className="text-gray-500 text-sm mt-2 mb-6">Vas a archivar <strong>{itemToDelete.nombre}</strong>. Se ocultará del inventario pero conservará su historial.</p>
             <div className="flex gap-2">
               <button onClick={cancelView} disabled={isSubmitting} className="flex-1 px-4 py-3 border rounded-xl hover:bg-gray-50">Cancelar</button>
-              <button onClick={handleDelete} disabled={isSubmitting} className="flex-1 px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 flex justify-center">{isSubmitting ? <Loader2 className="animate-spin" /> : 'Eliminar'}</button>
+              <button onClick={handleDelete} disabled={isSubmitting} className="flex-1 px-4 py-3 bg-orange-600 text-white rounded-xl hover:bg-orange-700 flex justify-center">{isSubmitting ? <Loader2 className="animate-spin" /> : 'Archivar'}</button>
             </div>
           </div>
         </div>
