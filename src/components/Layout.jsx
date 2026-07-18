@@ -1,16 +1,31 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { LayoutDashboard, Package, Wallet, LogOut } from 'lucide-react'
+import { LayoutDashboard, Package, Wallet, LogOut, Users } from 'lucide-react'
 import { authService } from '../services/authService'
+import { useAuth } from '../context/AuthContext'
 
 export function Layout({ children }) {
   const location = useLocation()
+  const { userProfile, isAdmin } = useAuth()
+  const rol = userProfile?.rol
 
-  const navItems = [
-    { name: 'Inicio', path: '/', icon: LayoutDashboard },
-    { name: 'Inventario', path: '/inventario', icon: Package },
-    { name: 'Caja', path: '/caja', icon: Wallet },
-  ]
+  const navItems = []
+
+  if (rol === 'ADMIN') {
+    navItems.push({ name: 'Inicio', path: '/', icon: LayoutDashboard })
+  }
+  
+  if (rol === 'ADMIN' || rol === 'ALMACEN') {
+    navItems.push({ name: 'Inventario', path: '/inventario', icon: Package })
+  }
+  
+  if (rol === 'ADMIN' || rol === 'MESERO') {
+    navItems.push({ name: 'Caja', path: '/caja', icon: Wallet })
+  }
+
+  if (isAdmin) {
+    navItems.push({ name: 'Personal', path: '/personal', icon: Users })
+  }
 
   return (
     <div className="flex h-screen flex-col md:flex-row" style={{ backgroundColor: 'var(--color-background)' }}>
