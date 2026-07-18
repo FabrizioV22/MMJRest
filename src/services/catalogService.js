@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase'
 export const catalogService = {
   // --- ÁREAS ---
   getAreas: async () => {
-    const { data, error } = await supabase.from('areas').select('*').eq('activo', true).order('nombre', { ascending: true })
+    const { data, error } = await supabase.from('areas').select('*').order('nombre', { ascending: true })
     if (error) throw error
     return data
   },
@@ -29,7 +29,7 @@ export const catalogService = {
 
   // --- CATEGORÍAS ---
   getCategories: async () => {
-    const { data, error } = await supabase.from('categorias').select('*, areas(nombre)').eq('activo', true).order('nombre', { ascending: true })
+    const { data, error } = await supabase.from('categorias').select('*, areas(nombre)').order('nombre', { ascending: true })
     if (error) throw error
     return data
   },

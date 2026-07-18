@@ -34,7 +34,6 @@ export const dashboardService = {
     const { count: totalCategories, error: err2 } = await supabase
       .from('categorias')
       .select('*', { count: 'exact', head: true })
-      .eq('activo', true)
 
     // Items con stock bajo activos (menor a 10)
     const { count: lowStockItems, error: err3 } = await supabase
