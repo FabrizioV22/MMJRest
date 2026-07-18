@@ -40,7 +40,7 @@ export function CatalogModule() {
   // ESTADOS DE FORMULARIO CRUD
   const [areaForm, setAreaForm] = useState({ id: null, nombre: '' })
   const [catForm, setCatForm] = useState({ id: null, nombre: '', area_id: '' })
-  const [prodForm, setProdForm] = useState({ id: null, nombre: '', unidad_medida: '', categoria_id: '' })
+  const [prodForm, setProdForm] = useState({ id: null, nombre: '', unidad_medida: '', area_id: '', categoria_id: '' })
 
   useEffect(() => {
     fetchData()
@@ -232,13 +232,16 @@ export function CatalogModule() {
 
   // --- CRUD PRODUCTOS ---
   const openCreateProduct = () => {
-    setProdForm({ id: null, nombre: '', unidad_medida: '', categoria_id: activeCategoryId || (categories[0]?.id || '') })
+    const aId = activeAreaId || (areas[0]?.id || '')
+    const cId = activeCategoryId || categories.find(c => c.area_id === aId)?.id || ''
+    setProdForm({ id: null, nombre: '', unidad_medida: '', area_id: aId, categoria_id: cId })
     setIsEditMode(false)
     setViewState('FORM_PROD')
   }
   const openEditProduct = (e, product) => {
     if (e) e.stopPropagation()
-    setProdForm({ id: product.id, nombre: product.nombre, unidad_medida: product.unidad_medida, categoria_id: product.categoria_id })
+    const productCat = categories.find(c => c.id === product.categoria_id)
+    setProdForm({ id: product.id, nombre: product.nombre, unidad_medida: product.unidad_medida, area_id: productCat?.area_id || '', categoria_id: product.categoria_id })
     setIsEditMode(true)
     setViewState('FORM_PROD')
   }
@@ -246,8 +249,9 @@ export function CatalogModule() {
     if (!prodForm.nombre || !prodForm.unidad_medida || !prodForm.categoria_id) return alert("Completa los campos.")
     setIsSubmitting(true)
     try {
-      if (isEditMode) await catalogService.updateProduct(prodForm.id, prodForm)
-      else await catalogService.createProduct(prodForm)
+      const payload = { nombre: prodForm.nombre, unidad_medida: prodForm.unidad_medida, categoria_id: prodForm.categoria_id }
+      if (isEditMode) await catalogService.updateProduct(prodForm.id, payload)
+      else await catalogService.createProduct(payload)
       await fetchData()
       cancelView()
     } catch (error) { alert('Error guardando producto.') } 
@@ -312,11 +316,22 @@ export function CatalogModule() {
                 <label className="block text-sm font-semibold text-gray-700">Unidad (SKU)</label>
                 <input type="text" value={prodForm.unidad_medida} onChange={e => setProdForm({...prodForm, unidad_medida: e.target.value})} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg outline-none" />
               </div>
-              <div className="space-y-2 md:col-span-2">
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-gray-700">Pertenece al Área</label>
+                <select value={prodForm.area_id || ''} onChange={e => {
+                  const area_id = e.target.value;
+                  const firstCat = categories.find(c => c.area_id === area_id);
+                  setProdForm({...prodForm, area_id, categoria_id: firstCat?.id || ''})
+                }} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg outline-none">
+                  <option value="">Selecciona Área</option>
+                  {areas.map(a => <option key={a.id} value={a.id}>{a.nombre}</option>)}
+                </select>
+              </div>
+              <div className="space-y-2">
                 <label className="block text-sm font-semibold text-gray-700">Categoría</label>
-                <select value={prodForm.categoria_id} onChange={e => setProdForm({...prodForm, categoria_id: e.target.value})} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg outline-none">
-                  <option value="">Selecciona una categoría</option>
-                  {categories.map(c => <option key={c.id} value={c.id}>{c.areas?.nombre} &gt; {c.nombre}</option>)}
+                <select disabled={!prodForm.area_id} value={prodForm.categoria_id} onChange={e => setProdForm({...prodForm, categoria_id: e.target.value})} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg outline-none disabled:opacity-50">
+                  <option value="">Selecciona Categoría</option>
+                  {categories.filter(c => c.area_id === prodForm.area_id).map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
                 </select>
               </div>
             </>

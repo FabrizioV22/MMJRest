@@ -12,8 +12,8 @@ export function DashboardModule() {
   // Data for chart and filtering
   const [allMovements, setAllMovements] = useState([])
   const [chartData, setChartData] = useState([])
-  const [availableCategories, setAvailableCategories] = useState([])
-  const [filterCategory, setFilterCategory] = useState('ALL')
+  const [availableAreas, setAvailableAreas] = useState([])
+  const [filterArea, setFilterArea] = useState('ALL')
   
   const [isLoading, setIsLoading] = useState(true)
 
@@ -23,33 +23,26 @@ export function DashboardModule() {
 
   useEffect(() => {
     if (allMovements.length > 0) {
-      processChartData(allMovements, filterCategory)
+      processChartData(allMovements, filterArea)
     }
-  }, [filterCategory, allMovements])
+  }, [filterArea, allMovements])
 
   const fetchDashboardData = async () => {
     setIsLoading(true)
     try {
-      const [globalStats, lowItems, recentMovs, rawMovs] = await Promise.all([
+      const [globalStats, lowItems, recentMovs, rawMovs, areas] = await Promise.all([
         dashboardService.getGlobalStats(),
         dashboardService.getLowStockProducts(),
         dashboardService.getRecentMovements(),
-        dashboardService.getMovementsForChart()
+        dashboardService.getMovementsForChart(),
+        catalogService.getAreas()
       ])
       
       setStats(globalStats)
       setLowStock(lowItems)
       setRecentMovements(recentMovs)
       setAllMovements(rawMovs)
-      
-      // Extract unique categories for the filter
-      const cats = new Map()
-      rawMovs.forEach(m => {
-        if (m.productos?.categorias) {
-          cats.set(m.productos.categoria_id, m.productos.categorias)
-        }
-      })
-      setAvailableCategories(Array.from(cats.values()))
+      setAvailableAreas(areas || [])
 
     } catch (error) {
       console.error(error)
@@ -59,13 +52,13 @@ export function DashboardModule() {
     }
   }
 
-  const processChartData = (rawMovs, categoryId) => {
+  const processChartData = (rawMovs, areaId) => {
     const dataMap = {}
     
-    // Filter by category if not 'ALL'
-    const filtered = categoryId === 'ALL' 
+    // Filter by Area if not 'ALL'
+    const filtered = areaId === 'ALL' 
       ? rawMovs 
-      : rawMovs.filter(m => m.productos?.categoria_id === categoryId)
+      : rawMovs.filter(m => m.productos?.categorias?.area_id === areaId)
 
     filtered.forEach(mov => {
       const date = new Date(mov.fecha).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })
@@ -186,13 +179,13 @@ export function DashboardModule() {
               <h3 className="text-lg font-bold text-gray-800">Flujo de Inventario</h3>
             </div>
             <select 
-              value={filterCategory} 
-              onChange={(e) => setFilterCategory(e.target.value)}
+              value={filterArea} 
+              onChange={(e) => setFilterArea(e.target.value)}
               className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 outline-none"
             >
               <option value="ALL">Todas las Áreas</option>
-              {availableCategories.map(cat => (
-                <option key={cat.id} value={cat.id}>{cat.nombre}</option>
+              {availableAreas.map(area => (
+                <option key={area.id} value={area.id}>{area.nombre}</option>
               ))}
             </select>
           </div>

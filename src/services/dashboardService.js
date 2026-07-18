@@ -40,7 +40,7 @@ export const dashboardService = {
   getMovementsForChart: async () => {
     const { data, error } = await supabase
       .from('movimientos_kardex')
-      .select('fecha, tipo_movimiento, cantidad, productos(id, nombre, categoria_id, categorias(id, nombre))')
+      .select('fecha, tipo_movimiento, cantidad, productos(id, nombre, categoria_id, categorias(id, nombre, area_id, areas(nombre)))')
       .order('fecha', { ascending: false })
       .limit(500)
     if (error) throw error
