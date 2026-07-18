@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Package, AlertTriangle, ArrowDownCircle, ArrowUpCircle, FolderOpen, Activity, Loader2, ArrowRight } from 'lucide-react'
+import { Package, AlertTriangle, ArrowDownCircle, ArrowUpCircle, FolderOpen, Activity, Loader2, ArrowRight, Clock } from 'lucide-react'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { dashboardService } from '../../services/dashboardService'
 import { Link } from 'react-router-dom'
