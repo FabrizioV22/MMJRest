@@ -133,39 +133,42 @@ export function DashboardModule() {
   return (
     <div className="space-y-6 animate-in fade-in pb-8">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">Panel de Control</h2>
-        <p className="text-gray-500 text-sm mt-1">Resumen general del inventario y alertas</p>
+        <h2 className="font-display text-2xl font-bold text-slate-900">Panel de Control</h2>
+        <p className="text-slate-400 text-sm mt-1">Resumen general del inventario y alertas</p>
       </div>
 
       {/* KPI CARDS */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center space-x-4">
-          <div className="p-4 bg-blue-50 text-blue-600 rounded-2xl">
-            <Package size={28} />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 stagger-children">
+        <div className="bg-white p-6 rounded-2xl card-soft border border-slate-100 flex items-center space-x-4 relative overflow-hidden">
+          <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500 rounded-l-2xl"></div>
+          <div className="p-3.5 bg-emerald-50 text-emerald-600 rounded-2xl">
+            <Package size={26} strokeWidth={1.5} />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Total Productos</p>
-            <h3 className="text-3xl font-black text-gray-900">{stats?.totalProducts}</h3>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Productos</p>
+            <h3 className="text-3xl font-black text-slate-900 mt-0.5">{stats?.totalProducts}</h3>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center space-x-4">
-          <div className="p-4 bg-orange-50 text-orange-600 rounded-2xl">
-            <AlertTriangle size={28} />
+        <div className="bg-white p-6 rounded-2xl card-soft border border-slate-100 flex items-center space-x-4 relative overflow-hidden">
+          <div className="absolute left-0 top-0 bottom-0 w-1 bg-orange-500 rounded-l-2xl"></div>
+          <div className="p-3.5 bg-orange-50 text-orange-600 rounded-2xl">
+            <AlertTriangle size={26} strokeWidth={1.5} />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Alertas de Stock</p>
-            <h3 className="text-3xl font-black text-gray-900">{stats?.lowStockItems}</h3>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Alertas de Stock</p>
+            <h3 className="text-3xl font-black text-slate-900 mt-0.5">{stats?.lowStockItems}</h3>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center space-x-4">
-          <div className="p-4 bg-purple-50 text-purple-600 rounded-2xl">
-            <FolderOpen size={28} />
+        <div className="bg-white p-6 rounded-2xl card-soft border border-slate-100 flex items-center space-x-4 relative overflow-hidden">
+          <div className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-500 rounded-l-2xl"></div>
+          <div className="p-3.5 bg-indigo-50 text-indigo-600 rounded-2xl">
+            <FolderOpen size={26} strokeWidth={1.5} />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Categorías Activas</p>
-            <h3 className="text-3xl font-black text-gray-900">{stats?.totalCategories}</h3>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Categorías Activas</p>
+            <h3 className="text-3xl font-black text-slate-900 mt-0.5">{stats?.totalCategories}</h3>
           </div>
         </div>
       </div>
@@ -173,16 +176,16 @@ export function DashboardModule() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* CHART SECTION */}
-        <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <div className="lg:col-span-2 bg-white p-6 rounded-2xl card-soft border border-slate-100">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-2">
-              <Activity className="text-blue-500" size={20} />
-              <h3 className="text-lg font-bold text-gray-800">Flujo de Inventario</h3>
+              <Activity className="text-emerald-500" size={20} />
+              <h3 className="text-base font-bold text-slate-700">Flujo de Inventario</h3>
             </div>
             <select 
               value={filterArea} 
               onChange={(e) => setFilterArea(e.target.value)}
-              className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 outline-none"
+              className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 outline-none cursor-pointer"
             >
               <option value="ALL">Todas las Áreas</option>
               {availableAreas.map(area => (
@@ -195,64 +198,64 @@ export function DashboardModule() {
               <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorIngresos" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#22c55e" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#059669" stopOpacity={0.25}/>
+                    <stop offset="95%" stopColor="#059669" stopOpacity={0}/>
                   </linearGradient>
                   <linearGradient id="colorEgresos" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#DC2626" stopOpacity={0.2}/>
+                    <stop offset="95%" stopColor="#DC2626" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12, fontFamily: 'Karla'}} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12, fontFamily: 'Karla'}} />
                 <Tooltip content={<CustomTooltip />} />
-                <Area type="monotone" name="Ingresos" dataKey="ingresos" stroke="#22c55e" strokeWidth={3} fillOpacity={1} fill="url(#colorIngresos)" />
-                <Area type="monotone" name="Egresos" dataKey="egresos" stroke="#ef4444" strokeWidth={3} fillOpacity={1} fill="url(#colorEgresos)" />
+                <Area type="monotone" name="Ingresos" dataKey="ingresos" stroke="#059669" strokeWidth={2.5} fillOpacity={1} fill="url(#colorIngresos)" />
+                <Area type="monotone" name="Egresos" dataKey="egresos" stroke="#DC2626" strokeWidth={2.5} fillOpacity={1} fill="url(#colorEgresos)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* LOW STOCK ALERTS */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-hidden">
-          <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-red-50/30">
+        <div className="bg-white rounded-2xl card-soft border border-slate-100 flex flex-col overflow-hidden">
+          <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-red-50/40">
             <div className="flex items-center space-x-2">
-              <AlertTriangle className="text-red-500" size={20} />
-              <h3 className="font-bold text-red-900">Por Agotarse</h3>
+              <AlertTriangle className="text-red-500" size={18} />
+              <h3 className="font-bold text-red-900 text-sm">Por Agotarse</h3>
             </div>
-            <span className="text-xs font-bold text-red-600 bg-red-100 px-2.5 py-1 rounded-full">{lowStock.length} ítems</span>
+            <span className="text-[11px] font-bold text-red-600 bg-red-100 px-2.5 py-1 rounded-full">{lowStock.length}</span>
           </div>
           <div className="flex-1 overflow-y-auto max-h-[300px]">
             {lowStock.length === 0 ? (
-              <div className="p-8 text-center text-gray-500">
-                <p>Todo el stock está en niveles óptimos.</p>
+              <div className="p-8 text-center text-slate-400">
+                <p>Todo el stock está en niveles óptimos. ✓</p>
               </div>
             ) : (
-              <ul className="divide-y divide-gray-50">
+              <ul className="divide-y divide-slate-50">
                 {lowStock.map(item => (
                   <Link 
                     to="/inventario" 
                     state={{ openCategoryId: item.categorias?.id || item.categoria_id, openProductId: item.id }} 
                     key={item.id} 
-                    className="p-4 hover:bg-red-50 transition-colors flex justify-between items-center block cursor-pointer group"
+                    className="p-4 hover:bg-red-50/50 flex justify-between items-center block cursor-pointer group"
                   >
                     <div>
-                      <p className="text-xs font-bold text-gray-400 group-hover:text-red-400 uppercase tracking-wide">{item.categorias?.nombre}</p>
-                      <h4 className="font-semibold text-gray-800 group-hover:text-red-700 transition-colors">{item.nombre}</h4>
+                      <p className="text-[10px] font-bold text-slate-400 group-hover:text-red-400 uppercase tracking-wider">{item.categorias?.nombre}</p>
+                      <h4 className="font-bold text-sm text-slate-700 group-hover:text-red-700">{item.nombre}</h4>
                     </div>
                     <div className="text-right">
                       <span className="text-lg font-black text-red-600">{item.stock_actual}</span>
-                      <span className="text-xs text-gray-500 ml-1">{item.unidad_medida}</span>
+                      <span className="text-[10px] text-slate-400 ml-1">{item.unidad_medida}</span>
                     </div>
                   </Link>
                 ))}
               </ul>
             )}
           </div>
-          <div className="p-3 border-t border-gray-100 bg-gray-50">
-            <Link to="/inventario" className="w-full text-center text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center justify-center py-1">
-              Ir al Inventario <ArrowRight size={16} className="ml-1" />
+          <div className="p-3 border-t border-slate-100 bg-slate-50/50">
+            <Link to="/inventario" className="w-full text-center text-sm font-bold text-slate-500 hover:text-emerald-600 flex items-center justify-center py-1 cursor-pointer">
+              Ir al Inventario <ArrowRight size={14} className="ml-1.5" />
             </Link>
           </div>
         </div>
@@ -260,51 +263,51 @@ export function DashboardModule() {
       </div>
 
       {/* RECENT MOVEMENTS */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mt-6">
-        <div className="p-5 border-b border-gray-100 flex items-center space-x-2">
-          <Clock className="text-gray-400" size={20} />
-          <h3 className="font-bold text-gray-800">Actividad Reciente (En tiempo real)</h3>
+      <div className="bg-white rounded-2xl card-soft border border-slate-100 overflow-hidden mt-6">
+        <div className="p-5 border-b border-slate-100 flex items-center space-x-2 bg-slate-50/50">
+          <Clock className="text-slate-400" size={18} />
+          <h3 className="font-bold text-slate-700 text-sm">Actividad Reciente</h3>
         </div>
         <div className="overflow-x-auto">
           {recentMovements.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">No hay movimientos recientes registrados.</div>
+            <div className="p-12 text-center text-slate-400">No hay movimientos recientes registrados.</div>
           ) : (
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-50 text-xs uppercase tracking-wider text-gray-500 border-b border-gray-100">
-                  <th className="p-4 font-semibold">Producto</th>
-                  <th className="p-4 font-semibold">Operación</th>
-                  <th className="p-4 font-semibold text-right">Cant.</th>
-                  <th className="p-4 font-semibold">Hora</th>
+                <tr className="bg-slate-50 text-[11px] uppercase tracking-wider text-slate-400 border-b border-slate-100">
+                  <th className="p-4 font-bold">Producto</th>
+                  <th className="p-4 font-bold">Operación</th>
+                  <th className="p-4 font-bold text-right">Cant.</th>
+                  <th className="p-4 font-bold">Hora</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-slate-50">
                 {recentMovements.map(mov => (
-                  <tr key={mov.id} className="hover:bg-gray-50 transition-colors">
+                  <tr key={mov.id} className="hover:bg-slate-50/50">
                     <td className="p-4">
-                      <p className="font-bold text-gray-800">{mov.productos?.nombre}</p>
-                      <p className="text-xs text-gray-500">{mov.productos?.categorias?.nombre}</p>
+                      <p className="font-bold text-sm text-slate-800">{mov.productos?.nombre}</p>
+                      <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">{mov.productos?.categorias?.nombre}</p>
                     </td>
                     <td className="p-4">
-                      <span className={`inline-flex items-center space-x-1 px-2.5 py-1 rounded-md text-xs font-bold ${
-                        mov.tipo_movimiento === 'INGRESO' ? 'bg-green-100 text-green-700' :
+                      <span className={`inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs font-bold ${
+                        mov.tipo_movimiento === 'INGRESO' ? 'bg-emerald-100 text-emerald-700' :
                         mov.tipo_movimiento === 'EGRESO' ? 'bg-red-100 text-red-700' :
                         'bg-blue-100 text-blue-700'
                       }`}>
-                        {mov.tipo_movimiento === 'INGRESO' && <ArrowDownCircle size={14} />}
-                        {mov.tipo_movimiento === 'EGRESO' && <ArrowUpCircle size={14} />}
+                        {mov.tipo_movimiento === 'INGRESO' && <ArrowDownCircle size={13} />}
+                        {mov.tipo_movimiento === 'EGRESO' && <ArrowUpCircle size={13} />}
                         <span>{mov.tipo_movimiento}</span>
                       </span>
                     </td>
                     <td className={`p-4 text-sm font-black text-right ${
-                        mov.tipo_movimiento === 'INGRESO' ? 'text-green-600' :
+                        mov.tipo_movimiento === 'INGRESO' ? 'text-emerald-600' :
                         mov.tipo_movimiento === 'EGRESO' ? 'text-red-600' :
-                        'text-gray-700'
+                        'text-slate-700'
                       }`}>
                       {mov.tipo_movimiento === 'INGRESO' ? '+' : mov.tipo_movimiento === 'EGRESO' ? '-' : ''}
-                      {mov.cantidad} <span className="text-xs font-normal text-gray-400">{mov.productos?.unidad_medida}</span>
+                      {mov.cantidad} <span className="text-[10px] font-normal text-slate-400">{mov.productos?.unidad_medida}</span>
                     </td>
-                    <td className="p-4 text-sm font-medium text-gray-500">
+                    <td className="p-4 text-sm font-medium text-slate-400">
                       {new Date(mov.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </td>
                   </tr>
