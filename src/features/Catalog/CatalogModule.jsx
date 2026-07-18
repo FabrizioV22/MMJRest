@@ -70,17 +70,32 @@ export function CatalogModule() {
   const fetchData = async () => {
     setIsLoading(true)
     try {
-      const [areasRes, catsRes, prodsRes] = await Promise.allSettled([
+      const results = await Promise.allSettled([
         catalogService.getAreas(),
         catalogService.getCategories(),
         catalogService.getProducts()
       ])
+      const [areasRes, catsRes, prodsRes] = results;
+      
+      console.log("Fetch Data Results:", results);
+
       if (areasRes.status === 'fulfilled') setAreas(areasRes.value || [])
-      else setAreas([])
+      else {
+        console.error("Error fetching areas:", areasRes.reason);
+        setAreas([]);
+      }
+
       if (catsRes.status === 'fulfilled') setCategories(catsRes.value || [])
-      else setCategories([])
+      else {
+        console.error("Error fetching categories:", catsRes.reason);
+        setCategories([]);
+      }
+
       if (prodsRes.status === 'fulfilled') setProducts(prodsRes.value || [])
-      else setProducts([])
+      else {
+        console.error("Error fetching products:", prodsRes.reason);
+        setProducts([]);
+      }
     } catch (error) {
       console.error('Error fetching data:', error)
     } finally {
@@ -151,7 +166,10 @@ export function CatalogModule() {
       if (isEditMode) await catalogService.updateArea(areaForm.id, { nombre: areaForm.nombre.toUpperCase() })
       else await catalogService.createArea({ nombre: areaForm.nombre.toUpperCase() })
       await fetchData(); cancelView()
-    } catch (error) { alert('Error guardando área.') } finally { setIsSubmitting(false) }
+    } catch (error) { 
+      console.error("Error completo al guardar área:", error);
+      alert('Error guardando área: ' + (error.message || 'Fallo desconocido')) 
+    } finally { setIsSubmitting(false) }
   }
 
   // --- CRUD CATEGORÍAS ---
