@@ -75,10 +75,12 @@ export function CatalogModule() {
         catalogService.getCategories(),
         catalogService.getProducts()
       ])
-      if (areasRes.status === 'fulfilled') setAreas(areasRes.value)
+      if (areasRes.status === 'fulfilled') setAreas(areasRes.value || [])
       else setAreas([])
-      if (catsRes.status === 'fulfilled') setCategories(catsRes.value)
-      if (prodsRes.status === 'fulfilled') setProducts(prodsRes.value)
+      if (catsRes.status === 'fulfilled') setCategories(catsRes.value || [])
+      else setCategories([])
+      if (prodsRes.status === 'fulfilled') setProducts(prodsRes.value || [])
+      else setProducts([])
     } catch (error) {
       console.error('Error fetching data:', error)
     } finally {
