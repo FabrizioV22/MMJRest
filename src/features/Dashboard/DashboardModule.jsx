@@ -3,6 +3,7 @@ import { Package, AlertTriangle, ArrowDownCircle, ArrowUpCircle, FolderOpen, Act
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { dashboardService } from '../../services/dashboardService'
 import { Link } from 'react-router-dom'
+import { catalogService } from '../../services/catalogService'
 
 export function DashboardModule() {
   const [stats, setStats] = useState(null)
