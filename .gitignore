@@ -22,3 +22,15 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Credenciales y Entorno
+.env
+.env.*
+!.env.example
+
+# Archivos de IA y Documentación (Opcional según solicitud)
+.agents/
+docs/
+.gemini/
+supabase_schema.sql
+skills-lock.json

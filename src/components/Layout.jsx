@@ -1,63 +1,111 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { LayoutDashboard, Package, ClipboardList, Wallet } from 'lucide-react'
+import { LayoutDashboard, Package, Wallet, LogOut, Users } from 'lucide-react'
+import { authService } from '../services/authService'
+import { useAuth } from '../context/AuthContext'
 
 export function Layout({ children }) {
   const location = useLocation()
+  const { userProfile, isAdmin } = useAuth()
+  const rol = userProfile?.rol
 
-  const navItems = [
-    { name: 'Inicio', path: '/', icon: LayoutDashboard },
-    { name: 'Catálogo', path: '/catalogo', icon: Package },
-    { name: 'Kardex', path: '/kardex', icon: ClipboardList },
-    { name: 'Caja', path: '/caja', icon: Wallet },
-  ]
+  const navItems = []
+
+  if (rol === 'ADMIN') {
+    navItems.push({ name: 'Inicio', path: '/', icon: LayoutDashboard })
+  }
+  
+  if (rol === 'ADMIN' || rol === 'ALMACEN') {
+    navItems.push({ name: 'Inventario', path: '/inventario', icon: Package })
+  }
+  
+  if (rol === 'ADMIN' || rol === 'MESERO') {
+    navItems.push({ name: 'Caja', path: '/caja', icon: Wallet })
+  }
+
+  if (isAdmin) {
+    navItems.push({ name: 'Personal', path: '/personal', icon: Users })
+  }
 
   return (
-    <div className="flex h-screen bg-gray-100 flex-col md:flex-row">
-      {/* Sidebar for Desktop */}
-      <aside className="hidden md:flex flex-col w-64 bg-white border-r border-gray-200">
-        <div className="p-4 border-b border-gray-200">
-          <h1 className="text-xl font-bold text-gray-800">Inventario Pro</h1>
+    <div className="flex h-screen flex-col md:flex-row" style={{ backgroundColor: 'var(--color-background)' }}>
+      {/* Sidebar for Desktop — Dark Premium */}
+      <aside className="hidden md:flex flex-col w-64 bg-gradient-to-b from-slate-900 to-slate-800 text-white">
+        {/* Brand */}
+        <div className="p-6 border-b border-white/10">
+          <h1 className="font-display text-2xl font-bold tracking-wider text-white">MAMA JULIA</h1>
+          <p className="text-xs text-slate-400 mt-1 font-medium tracking-wide">Sistema de Gestión</p>
         </div>
-        <nav className="flex-1 p-4 space-y-2">
+        
+        {/* Navigation */}
+        <nav className="flex-1 p-4 space-y-1.5">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path
             return (
               <Link
                 key={item.name}
                 to={item.path}
-                className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${isActive ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'}`}
+                className={`flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm transition-all cursor-pointer ${
+                  isActive 
+                    ? 'bg-emerald-600/20 text-emerald-400 shadow-lg shadow-emerald-900/20' 
+                    : 'text-slate-400 hover:bg-white/5 hover:text-white'
+                }`}
               >
-                <item.icon size={20} />
-                <span className="font-medium">{item.name}</span>
+                <item.icon size={20} strokeWidth={isActive ? 2.5 : 1.5} />
+                <span>{item.name}</span>
+                {isActive && <span className="ml-auto w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>}
               </Link>
             )
           })}
         </nav>
+
+        {/* Footer & Logout */}
+        <div className="p-4 border-t border-white/10 space-y-2">
+          <button 
+            onClick={() => authService.logout()}
+            className="w-full flex items-center justify-center space-x-2 p-3 text-red-400 bg-red-400/10 hover:bg-red-400/20 hover:text-red-300 rounded-xl transition-colors cursor-pointer shadow-sm"
+          >
+            <LogOut size={16} />
+            <span className="text-sm font-medium">Cerrar Sesión</span>
+          </button>
+          <p className="text-[10px] text-slate-500 text-center font-medium">v1.0 — Desarrollo</p>
+        </div>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
+      <main className="flex-1 overflow-y-auto pb-20 md:pb-0">
         <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
           {children}
         </div>
       </main>
 
-      {/* Bottom Navigation for Mobile */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around p-2 z-50">
+      {/* Bottom Navigation for Mobile — Dark Premium */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-white/10 flex justify-around py-2 px-1 z-50">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path
           return (
             <Link
               key={item.name}
               to={item.path}
-              className={`flex flex-col items-center justify-center w-full p-2 space-y-1 ${isActive ? 'text-blue-600' : 'text-gray-500 hover:text-gray-900'}`}
+              className={`flex flex-col items-center justify-center w-full py-2 space-y-0.5 rounded-xl cursor-pointer transition-all ${
+                isActive 
+                  ? 'text-emerald-400' 
+                  : 'text-slate-500 hover:text-slate-300'
+              }`}
             >
-              <item.icon size={24} />
-              <span className="text-xs font-medium">{item.name}</span>
+              <item.icon size={22} strokeWidth={isActive ? 2.5 : 1.5} />
+              <span className="text-[10px] font-bold tracking-wide uppercase">{item.name}</span>
+              {isActive && <span className="w-4 h-0.5 bg-emerald-400 rounded-full mt-0.5"></span>}
             </Link>
           )
         })}
+        <button
+          onClick={() => authService.logout()}
+          className="flex flex-col items-center justify-center w-full py-2 space-y-0.5 text-red-400 hover:text-red-300 rounded-xl cursor-pointer transition-all"
+        >
+          <LogOut size={22} strokeWidth={1.5} />
+          <span className="text-[10px] font-bold tracking-wide uppercase">Salir</span>
+        </button>
       </nav>
     </div>
   )
