@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { 
   Plus, Search, Edit2, Archive, Package, X, Loader2, ChevronRight, FolderOpen, 
-  ArrowDownCircle, ArrowUpCircle, Clock, Home, Settings, Layers, BarChart3
+  ArrowDownCircle, ArrowUpCircle, Clock, Home, Settings, Layers, BarChart3, Trash2
 } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
 import { catalogService } from '../../services/catalogService'
@@ -107,10 +107,30 @@ export function CatalogModule() {
   const activeAreaObj = areas.find(a => a.id === activeAreaId)
   const activeCategoryObj = categories.find(c => c.id === activeCategoryId)
   const activeProductObj = products.find(p => p.id === activeProductId)
-  const filteredCategories = categories.filter(c => c.area_id === activeAreaId)
+  
+  const searchLower = searchTerm.toLowerCase()
+
+  const filteredAreas = areas.filter(area => {
+    if (!searchTerm) return true
+    if (area.nombre.toLowerCase().includes(searchLower)) return true
+    const areaCats = categories.filter(c => c.area_id === area.id)
+    if (areaCats.some(c => c.nombre.toLowerCase().includes(searchLower))) return true
+    const areaProds = products.filter(p => areaCats.some(c => c.id === p.categoria_id))
+    return areaProds.some(p => p.nombre.toLowerCase().includes(searchLower))
+  })
+
+  const filteredCategories = categories.filter(c => {
+    if (c.area_id !== activeAreaId) return false
+    if (!searchTerm) return true
+    if (c.nombre.toLowerCase().includes(searchLower)) return true
+    const catProds = products.filter(p => p.categoria_id === c.id)
+    return catProds.some(p => p.nombre.toLowerCase().includes(searchLower))
+  })
+
   const filteredProducts = products.filter(product => {
     if (product.categoria_id !== activeCategoryId) return false
-    return product.nombre.toLowerCase().includes(searchTerm.toLowerCase())
+    if (!searchTerm) return true
+    return product.nombre.toLowerCase().includes(searchLower)
   })
 
   // --- CURRENT LEVEL (for theming) ---
@@ -129,13 +149,13 @@ export function CatalogModule() {
     setActiveAreaId(null); setActiveCategoryId(null); setActiveProductId(null); setSearchTerm(''); setViewState('MAIN')
   }
   const handleOpenArea = (id) => {
-    setActiveAreaId(id); setActiveCategoryId(null); setActiveProductId(null); setSearchTerm(''); setViewState('MAIN')
+    setActiveAreaId(id); setActiveCategoryId(null); setActiveProductId(null); setViewState('MAIN')
   }
   const handleOpenCategory = (id) => {
-    setActiveCategoryId(id); setActiveProductId(null); setSearchTerm(''); setViewState('MAIN')
+    setActiveCategoryId(id); setActiveProductId(null); setViewState('MAIN')
   }
   const handleOpenProduct = async (product) => {
-    setActiveProductId(product.id); setActiveCategoryId(product.categoria_id); setSearchTerm(''); setViewState('MAIN')
+    setActiveProductId(product.id); setActiveCategoryId(product.categoria_id); setViewState('MAIN')
     setIsLoadingMovements(true)
     try { const history = await catalogService.getProductMovements(product.id); setMovements(history) }
     catch (error) { console.error(error) }
@@ -353,12 +373,17 @@ export function CatalogModule() {
             </button>
           </div>
           
+          <div className="bg-white p-3 rounded-2xl card-soft border border-slate-100 relative">
+            <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
+            <input type="text" placeholder="Buscar áreas, categorías o productos..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-3 bg-slate-50 border-none rounded-xl outline-none" />
+          </div>
+          
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 stagger-children">
-            {areas.map(area => (
+            {filteredAreas.map(area => (
               <div key={area.id} onClick={() => handleOpenArea(area.id)} className="bg-white p-6 rounded-2xl card-soft border border-slate-100 hover:border-slate-300 cursor-pointer group flex flex-col items-center justify-center text-center space-y-3 relative min-h-[160px]">
                 <div className="absolute top-3 right-3 flex space-x-1 opacity-0 group-hover:opacity-100">
                   <button onClick={(e) => openEditArea(e, area)} className="p-1.5 text-slate-400 hover:text-slate-700 bg-slate-50 rounded-lg cursor-pointer"><Edit2 size={14}/></button>
-                  <button onClick={(e) => confirmDelete(e, area, 'AREA')} className="p-1.5 text-slate-400 hover:text-orange-600 bg-slate-50 rounded-lg cursor-pointer"><Archive size={14}/></button>
+                  <button onClick={(e) => confirmDelete(e, area, 'AREA')} className="p-1.5 text-slate-400 hover:text-red-600 bg-slate-50 rounded-lg cursor-pointer"><Trash2 size={14}/></button>
                 </div>
                 <div className="w-14 h-14 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform" style={{ backgroundColor: levelTheme.area.accentLight, color: levelTheme.area.accent }}>
                   <Layers size={28} strokeWidth={1.5} />
@@ -369,6 +394,9 @@ export function CatalogModule() {
                 </span>
               </div>
             ))}
+            {filteredAreas.length === 0 && (
+               <div className="col-span-full text-center py-16 text-slate-400 border-2 border-dashed border-slate-200 rounded-2xl">No se encontraron resultados.</div>
+            )}
           </div>
         </div>
       )}
@@ -386,12 +414,17 @@ export function CatalogModule() {
             </button>
           </div>
           
+          <div className="bg-white p-3 rounded-2xl card-soft border border-slate-100 relative">
+            <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
+            <input type="text" placeholder={`Buscar categorías o productos en ${activeAreaObj?.nombre}...`} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-3 bg-slate-50 border-none rounded-xl outline-none" />
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 stagger-children">
             {filteredCategories.map(cat => (
               <div key={cat.id} onClick={() => handleOpenCategory(cat.id)} className="bg-white p-6 rounded-2xl card-soft border cursor-pointer group flex flex-col items-center justify-center text-center space-y-3 relative min-h-[160px]" style={{ borderColor: levelTheme.category.accentBorder + '60' }}>
                 <div className="absolute top-3 right-3 flex space-x-1 opacity-0 group-hover:opacity-100">
                   <button onClick={(e) => openEditCategory(e, cat)} className="p-1.5 text-slate-400 hover:text-indigo-600 bg-slate-50 rounded-lg cursor-pointer"><Edit2 size={14}/></button>
-                  <button onClick={(e) => confirmDelete(e, cat, 'CATEGORY')} className="p-1.5 text-slate-400 hover:text-orange-600 bg-slate-50 rounded-lg cursor-pointer"><Archive size={14}/></button>
+                  <button onClick={(e) => confirmDelete(e, cat, 'CATEGORY')} className="p-1.5 text-slate-400 hover:text-red-600 bg-slate-50 rounded-lg cursor-pointer"><Trash2 size={14}/></button>
                 </div>
                 <div className="w-14 h-14 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform" style={{ backgroundColor: levelTheme.category.accentLight, color: levelTheme.category.accent }}>
                   <FolderOpen size={28} strokeWidth={1.5} />
@@ -403,7 +436,7 @@ export function CatalogModule() {
               </div>
             ))}
             {filteredCategories.length === 0 && (
-               <div className="col-span-full text-center py-16 text-slate-400 border-2 border-dashed border-slate-200 rounded-2xl">No hay categorías en esta área.</div>
+               <div className="col-span-full text-center py-16 text-slate-400 border-2 border-dashed border-slate-200 rounded-2xl">No se encontraron resultados.</div>
             )}
           </div>
         </div>
@@ -526,16 +559,30 @@ export function CatalogModule() {
         </div>
       )}
 
-      {/* MODAL ARCHIVAR */}
+      {/* MODAL ARCHIVAR / ELIMINAR */}
       {itemToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 text-center animate-fade-in-up">
-            <Archive className="text-orange-500 w-12 h-12 mx-auto mb-4 bg-orange-100 p-2.5 rounded-2xl" />
-            <h3 className="text-xl font-bold text-slate-900">¿Archivar {deleteType==='AREA'?'Área':deleteType==='CATEGORY'?'Categoría':'Producto'}?</h3>
-            <p className="text-slate-400 text-sm mt-2 mb-6"><strong className="text-slate-600">{itemToDelete.nombre}</strong> se ocultará del inventario pero conservará su historial.</p>
+            {deleteType === 'PRODUCT' ? (
+              <Archive className="text-orange-500 w-12 h-12 mx-auto mb-4 bg-orange-100 p-2.5 rounded-2xl" />
+            ) : (
+              <Trash2 className="text-red-500 w-12 h-12 mx-auto mb-4 bg-red-100 p-2.5 rounded-2xl" />
+            )}
+            <h3 className="text-xl font-bold text-slate-900">
+              ¿{deleteType === 'PRODUCT' ? 'Archivar Producto' : `Eliminar ${deleteType === 'AREA' ? 'Área' : 'Categoría'}`}?
+            </h3>
+            <p className="text-slate-400 text-sm mt-2 mb-6">
+              {deleteType === 'PRODUCT' ? (
+                <><strong className="text-slate-600">{itemToDelete.nombre}</strong> se ocultará del inventario pero conservará su historial.</>
+              ) : (
+                <><strong className="text-slate-600">{itemToDelete.nombre}</strong> se eliminará permanentemente de la base de datos.</>
+              )}
+            </p>
             <div className="flex gap-3">
               <button onClick={cancelView} disabled={isSubmitting} className="flex-1 px-4 py-3 border border-slate-200 rounded-xl hover:bg-slate-50 font-medium cursor-pointer">Cancelar</button>
-              <button onClick={handleDelete} disabled={isSubmitting} className="flex-1 px-4 py-3 bg-orange-500 text-white rounded-xl hover:bg-orange-600 font-bold flex justify-center cursor-pointer">{isSubmitting ? <Loader2 className="animate-spin" /> : 'Archivar'}</button>
+              <button onClick={handleDelete} disabled={isSubmitting} className={`flex-1 px-4 py-3 text-white rounded-xl font-bold flex justify-center cursor-pointer ${deleteType === 'PRODUCT' ? 'bg-orange-500 hover:bg-orange-600' : 'bg-red-500 hover:bg-red-600'}`}>
+                {isSubmitting ? <Loader2 className="animate-spin" /> : (deleteType === 'PRODUCT' ? 'Archivar' : 'Eliminar')}
+              </button>
             </div>
           </div>
         </div>

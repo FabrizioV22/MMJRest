@@ -34,3 +34,4 @@ docs/
 .gemini/
 supabase_schema.sql
 skills-lock.json
+*.md

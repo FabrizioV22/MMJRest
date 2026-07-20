@@ -63,16 +63,16 @@ button, a, select {
   to { opacity: 1; }
 }
 @keyframes float {
-  0% { transform: translate(0, 0) scale(1); opacity: 0.4; }
-  33% { transform: translate(30px, -50px) scale(1.1); opacity: 0.6; }
-  66% { transform: translate(-20px, 20px) scale(0.9); opacity: 0.5; }
-  100% { transform: translate(0, 0) scale(1); opacity: 0.4; }
+  0% { transform: translate(0, 0) scale(1); opacity: 0.3; }
+  33% { transform: translate(50px, -70px) scale(1.15); opacity: 0.6; }
+  66% { transform: translate(-30px, 40px) scale(0.85); opacity: 0.4; }
+  100% { transform: translate(0, 0) scale(1); opacity: 0.3; }
 }
 @keyframes floatReverse {
-  0% { transform: translate(0, 0) scale(1); opacity: 0.4; }
-  33% { transform: translate(-30px, 50px) scale(0.9); opacity: 0.5; }
-  66% { transform: translate(20px, -20px) scale(1.1); opacity: 0.6; }
-  100% { transform: translate(0, 0) scale(1); opacity: 0.4; }
+  0% { transform: translate(0, 0) scale(1); opacity: 0.3; }
+  33% { transform: translate(-50px, 70px) scale(0.85); opacity: 0.4; }
+  66% { transform: translate(30px, -40px) scale(1.15); opacity: 0.6; }
+  100% { transform: translate(0, 0) scale(1); opacity: 0.3; }
 }
 @keyframes slideInRight {
   from { opacity: 0; transform: translateX(20px); }
