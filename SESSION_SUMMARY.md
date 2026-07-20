@@ -5,47 +5,36 @@ En esta sesión nos enfocamos en **Seguridad (Auth, RLS), Roles de Usuario, Limp
 
 ### 1️⃣ Autenticación, Usuarios y Permisos (Supabase)
 - **Tabla `public.usuarios`:** Creada y enlazada automáticamente con `auth.users` de Supabase mediante un trigger (`on_auth_user_created`). 
-- **Roles:** Existen `ADMIN`, `MESERO`, `ALMACEN` y `PENDIENTE` (estado por defecto para nuevos registros).
-- **Manejo de Cuentas:** Se implementó una lógica donde:
-  - Usuarios `PENDIENTE` ven una pantalla informativa con opción a cerrar sesión, bloqueando su acceso al sistema principal.
-  - Usuarios con `activo = false` (desactivados) ven una pantalla roja de cuenta desactivada. Esto reemplazó el uso de IDs de Supabase en la UI, prefiriendo desactivar en lugar de borrar (`Hard Delete`) para mantener el historial del Kardex íntegro.
-- **Row Level Security (RLS):** Supabase bloqueó peticiones del cliente React una vez que se integró la autenticación. Se escribieron y aplicaron scripts SQL (`migration_catalog_rls.sql`) para otorgar permisos `CRUD` en `areas`, `categorias`, `productos` y `movimientos_kardex` a los usuarios con rol `authenticated`.
+- **Roles:** Existen `ADMIN`, `MESERO`, `ALMACEN` y `PENDIENTE`.
+- **Manejo de Cuentas:** Se implementó una lógica donde usuarios desactivados o pendientes ven pantallas informativas de bloqueo. 
+- **Auditoría de Seguridad RLS:** Se identificaron vulnerabilidades críticas en la BD. Se aplicó un script SQL de blindaje total usando una función auxiliar `get_user_rol()` como `SECURITY DEFINER` para evitar recursión infinita, bloqueando lecturas/escrituras según roles estrictos (RBAC Real). Además, el RPC `registrar_movimiento` se validó para que no cualquiera pueda afectar stock.
 
 ### 2️⃣ Módulo de Personal (`UsersModule.jsx`)
-- Se pulió la UI. 
-- Se eliminó la visualización del UUID de Supabase.
-- Se introdujo un botón tipo "Pill" para cambiar el estado visualmente entre **Activo / Desactivado**.
-- Modificación optimista (Optimistic UI Update) para una sensación instantánea de respuesta en el cambio de roles y estados.
+- Se pulió la UI eliminando el UUID y usando un botón "Pill" para activar/desactivar.
 
-### 3️⃣ Lógica de Eliminación (Inventario)
-- **Áreas y Categorías:** Se pasó de un _Soft Delete_ (`update activo = false`) a un **Hard Delete** (`.delete()`). 
-- **Protección de Relaciones (Foreign Keys):** La BD de Postgres bloquea la eliminación si el área o categoría tiene hijos (Categorías o Productos). React atrapa el error `23503` de Postgres y muestra un alert amigable indicando que debe vaciarse primero.
-- **Limpieza de BD:** Al hacer Hard Delete, la columna `activo` en `areas` y `categorias` quedó obsoleta. Se eliminó mediante el script `migration_cleanup_columns.sql`.
-- **Productos:** Se mantuvo el _Soft Delete_ para proteger el historial de transacciones (Kardex).
+### 3️⃣ Lógica de Eliminación y Filtros (Inventario)
+- **Hard Delete (Áreas y Categorías):** Se pasó de un _Soft Delete_ a **Hard Delete**. Se mejoró la UI cambiando el botón a papelera roja (`Trash2`) y actualizando los textos de advertencia.
+- **Productos:** Se mantuvo el _Soft Delete_.
+- **Barra de Búsqueda UX:** Se implementó una barra de búsqueda en Áreas y Categorías con "Cascada Inversa". Al buscar desde Área, el texto busca tanto en la propia Área, como en Categorías hijas y Productos, manteniendo el texto de búsqueda al profundizar en el drill-down.
 
-### 4️⃣ UI/UX Refactor (Diseño Profesional)
-- **LoginModule.jsx:** Se reescribió desde cero para reemplazar la estética inicial (colores fuertes, fondo cortado) por una interfaz ultra-limpia y profesional, más adecuada para un panel corporativo (estilo *Soft UI Evolution*).
-  - Se añadieron *esferas de fondo flotantes* suaves con animaciones nativas en CSS y `mix-blend-multiply` usando gradientes pasteles para aportar dinamismo sin distraer.
-  - Botón de login estandarizado con el resto de la aplicación (se retiró el rebote `active:scale` para mantener consistencia universal en botones de la app).
-- **Layout.jsx:** El botón de "Cerrar Sesión" de la barra lateral se rediseñó con color rojo pálido para resaltar visualmente su función destructiva.
-- **Limpieza de Scripts SQL:** Eliminados de la raíz del proyecto para evitar clutter en GitHub.
+### 4️⃣ UI/UX Refactor y Estructura del Código
+- **LoginModule.jsx:** Interfaz ultra-limpia (Soft UI Evolution) con esferas de fondo flotantes. Los elementos gráficos estéticos se extrajeron a un sub-componente `AnimatedBackground.jsx`.
+- **Layout y App.jsx:** El ruteo manual anidado con condicionales en `App.jsx` y `Layout.jsx` se refactorizó para consumir un único archivo de configuración `src/config/navigation.jsx` mejorando notablemente el DRY de la aplicación.
+- Las vistas de bloqueo (`AccountSuspendedView`, `AccountPendingView`) se extrajeron a `src/features/Auth/AccountStatusViews.jsx` para limpiar `App.jsx`.
 
 ---
 
 ## 🎯 Próximos Pasos (Next Session)
-El sistema actual ya maneja Seguridad, Inventario (Kardex completo) y Roles. Lo único que sigue es arrancar con las Ventas.
+El sistema actual ya maneja Seguridad absoluta en frontend y backend, Inventario (Kardex completo), Roles y Vistas Refactorizadas.
 
 **1. Módulo de Caja (`CajaModule` / Ventas)**
 - Creación de la UI para registrar Ventas y Pedidos (Dirigido principalmente al rol `MESERO`).
-- Lógica transaccional para descontar inventario cuando se realiza una venta (integración bidireccional entre Caja y Kardex de Productos).
-- Manejo de turnos o aperturas/cierres de caja (si el flujo del negocio lo requiere).
+- Lógica transaccional para descontar inventario cuando se realiza una venta.
 
 **2. Optimización Final**
 - Implementar los filtros por Categoría en el Inventario.
 - Posible refactor de componentes reutilizables si el código empieza a repetirse mucho.
 
 **Nota para el Agente:** 
-- Al comenzar, lee la carpeta `src/features` para familiarizarte con las estructuras `CatalogModule` y `UsersModule`. 
-- El diseño utiliza Tailwind y depende fuertemente de iconos `lucide-react`. 
-- No hay problemas de permisos en BD actualmente (RLS configurado).
-- Revisa `skills/ui-ux-pro-max/SKILL.md` para mantener la coherencia visual que se aplicó hoy.
+- Revisa el archivo de configuración en `src/config/navigation.jsx` para conocer las rutas.
+- Todo está securizado por roles tanto a nivel componente como nivel DB.

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Lock, Mail, Loader2, AlertCircle } from 'lucide-react'
 import { authService } from '../../services/authService'
+import { AnimatedBackground } from './AnimatedBackground'
 
 export function LoginModule() {
   const [email, setEmail] = useState('')
@@ -25,12 +26,8 @@ export function LoginModule() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 relative p-4 font-sans">
       
-      {/* Soft decorative background elements (Minimal & Professional + Floating) */}
-      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[10%] left-[10%] w-[40vw] h-[40vw] max-w-[500px] max-h-[500px] rounded-full bg-indigo-200/30 blur-3xl opacity-50 animate-float"></div>
-        <div className="absolute bottom-[10%] right-[10%] w-[50vw] h-[50vw] max-w-[600px] max-h-[600px] rounded-full bg-emerald-200/20 blur-3xl opacity-50 animate-float-reverse"></div>
-        <div className="absolute top-[40%] right-[30%] w-[30vw] h-[30vw] max-w-[400px] max-h-[400px] rounded-full bg-sky-200/20 blur-3xl opacity-40 animate-float" style={{ animationDelay: '-5s' }}></div>
-      </div>
+      {/* Soft decorative background elements */}
+      <AnimatedBackground />
 
       <div className="w-full max-w-[420px] p-8 sm:p-10 bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 z-10 animate-fade-in-up relative">
         <div className="text-center mb-10 pt-2">
