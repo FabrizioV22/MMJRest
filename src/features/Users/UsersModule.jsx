@@ -22,12 +22,26 @@ export function UsersModule() {
     }
   }
 
-  const handleRoleChange = async (userId, newRole) => {
+  const handleRoleToggle = async (userId, currentRoles, roleToToggle) => {
     try {
-      setUsers(users.map(u => u.id === userId ? { ...u, rol: newRole } : u)) // optimistic update
-      await userService.updateUser(userId, { rol: newRole })
+      let newRoles = [...(currentRoles || [])];
+      if (newRoles.includes(roleToToggle)) {
+        newRoles = newRoles.filter(r => r !== roleToToggle);
+      } else {
+        newRoles.push(roleToToggle);
+      }
+      
+      if (roleToToggle === 'PENDIENTE') {
+         newRoles = ['PENDIENTE'];
+      } else {
+         newRoles = newRoles.filter(r => r !== 'PENDIENTE');
+      }
+      if (newRoles.length === 0) newRoles = ['PENDIENTE'];
+
+      setUsers(users.map(u => u.id === userId ? { ...u, roles: newRoles } : u)) // optimistic update
+      await userService.updateUser(userId, { roles: newRoles })
     } catch (err) {
-      alert("Error actualizando rol")
+      alert("Error actualizando roles")
       loadUsers() // revert on fail
     }
   }
@@ -75,7 +89,7 @@ export function UsersModule() {
               <tr className="bg-slate-50 text-[11px] uppercase tracking-wider text-slate-400 border-b border-slate-100">
                 <th className="p-4 font-bold">Estado</th>
                 <th className="p-4 font-bold">Nombre Completo</th>
-                <th className="p-4 font-bold">Rol Actual</th>
+                <th className="p-4 font-bold">Roles Actuales</th>
                 <th className="p-4 font-bold text-right">Acciones</th>
               </tr>
             </thead>
@@ -97,28 +111,35 @@ export function UsersModule() {
                   </td>
                   <td className="p-4 font-bold text-sm text-slate-800">{user.nombre_completo || 'Sin nombre'}</td>
                   <td className="p-4">
-                    <span className={`inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs font-bold ${
-                      user.rol === 'ADMIN' ? 'bg-indigo-100 text-indigo-700' :
-                      user.rol === 'MESERO' ? 'bg-emerald-100 text-emerald-700' :
-                      user.rol === 'ALMACEN' ? 'bg-orange-100 text-orange-700' :
-                      'bg-slate-100 text-slate-700'
-                    }`}>
-                      <Shield size={13} />
-                      <span>{user.rol}</span>
-                    </span>
+                    <div className="flex flex-wrap gap-1">
+                      {(user.roles || []).map(r => (
+                        <span key={r} className={`inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg text-[10px] font-bold ${
+                          r === 'ADMIN' ? 'bg-indigo-100 text-indigo-700' :
+                          r === 'MESERO' ? 'bg-emerald-100 text-emerald-700' :
+                          r === 'ALMACEN' ? 'bg-orange-100 text-orange-700' :
+                          'bg-slate-100 text-slate-700'
+                        }`}>
+                          <Shield size={11} />
+                          <span>{r}</span>
+                        </span>
+                      ))}
+                    </div>
                   </td>
                   <td className="p-4 text-right">
-                    <select 
-                      value={user.rol}
-                      onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                      disabled={!user.activo}
-                      className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 outline-none cursor-pointer hover:border-emerald-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <option value="PENDIENTE">PENDIENTE (Sin acceso)</option>
-                      <option value="MESERO">MESERO (Caja)</option>
-                      <option value="ALMACEN">ALMACEN (Inventario)</option>
-                      <option value="ADMIN">ADMIN (Todo)</option>
-                    </select>
+                    <div className="flex flex-wrap justify-end gap-3 text-xs font-bold text-slate-600">
+                      {['ADMIN', 'MESERO', 'ALMACEN', 'PENDIENTE'].map(role => (
+                        <label key={role} className={`flex items-center gap-1 cursor-pointer hover:text-emerald-600 ${!user.activo ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                          <input 
+                            type="checkbox"
+                            checked={(user.roles || []).includes(role)}
+                            disabled={!user.activo}
+                            onChange={() => handleRoleToggle(user.id, user.roles, role)}
+                            className="accent-emerald-500"
+                          />
+                          {role}
+                        </label>
+                      ))}
+                    </div>
                   </td>
                 </tr>
               ))}

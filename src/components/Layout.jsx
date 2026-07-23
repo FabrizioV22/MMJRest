@@ -1,16 +1,18 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { LogOut } from 'lucide-react'
+import { LogOut, MapPin } from 'lucide-react'
 import { authService } from '../services/authService'
 import { useAuth } from '../context/AuthContext'
+import { useSede } from '../context/SedeContext'
 import { APP_ROUTES } from '../config/navigation'
 
 export function Layout({ children }) {
   const location = useLocation()
   const { userProfile, isAdmin } = useAuth()
-  const rol = userProfile?.rol
+  const { sedes, activeSede, changeSede } = useSede()
+  const userRoles = userProfile?.roles || []
 
-  const navItems = APP_ROUTES.filter(route => route.allowedRoles.includes(rol))
+  const navItems = APP_ROUTES.filter(route => route.allowedRoles.some(r => userRoles.includes(r)))
 
   return (
     <div className="flex h-screen flex-col md:flex-row" style={{ backgroundColor: 'var(--color-background)' }}>
@@ -20,6 +22,22 @@ export function Layout({ children }) {
         <div className="p-6 border-b border-white/10">
           <h1 className="font-display text-2xl font-bold tracking-wider text-white">MAMA JULIA</h1>
           <p className="text-xs text-slate-400 mt-1 font-medium tracking-wide">Sistema de Gestión</p>
+        </div>
+
+        {/* Sede Selector Desktop */}
+        <div className="p-4 border-b border-white/10">
+          <div className="flex items-center space-x-2 bg-slate-800 p-2 rounded-xl border border-white/5 shadow-inner">
+            <MapPin size={16} className="text-emerald-400 shrink-0" />
+            <select 
+              value={activeSede?.id || ''} 
+              onChange={(e) => changeSede(e.target.value)}
+              className="bg-transparent text-sm font-bold text-white outline-none w-full cursor-pointer appearance-none"
+            >
+              {sedes.map(s => (
+                <option key={s.id} value={s.id} className="bg-slate-800 text-white">{s.nombre}</option>
+              ))}
+            </select>
+          </div>
         </div>
         
         {/* Navigation */}
@@ -58,7 +76,24 @@ export function Layout({ children }) {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto pb-20 md:pb-0">
+      <main className="flex-1 overflow-y-auto pb-20 md:pb-0 relative">
+        {/* Mobile Header & Sede Selector */}
+        <div className="md:hidden sticky top-0 z-40 bg-white border-b border-slate-100 p-4 flex justify-between items-center shadow-sm">
+          <h1 className="font-display font-bold text-slate-800 tracking-wider text-lg">MAMA JULIA</h1>
+          <div className="flex items-center space-x-1 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
+            <MapPin size={14} className="text-emerald-500" />
+            <select 
+              value={activeSede?.id || ''} 
+              onChange={(e) => changeSede(e.target.value)}
+              className="bg-transparent text-xs font-bold text-slate-700 outline-none cursor-pointer appearance-none"
+            >
+              {sedes.map(s => (
+                <option key={s.id} value={s.id}>{s.nombre}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
         <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
           {children}
         </div>

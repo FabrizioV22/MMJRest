@@ -2,9 +2,7 @@ import { LayoutDashboard, Package, Wallet, Users } from 'lucide-react'
 import { DashboardModule } from '../features/Dashboard/DashboardModule'
 import { CatalogModule } from '../features/Catalog/CatalogModule'
 import { UsersModule } from '../features/Users/UsersModule'
-
-// Componente placeholder para módulos en construcción
-const CajaModuleMock = () => <div className="p-8 text-center text-slate-500">Módulo Caja (En construcción)</div>
+import { CajaModule } from '../features/Caja/CajaModule'
 
 export const APP_ROUTES = [
   { 
@@ -25,7 +23,7 @@ export const APP_ROUTES = [
     path: '/caja', 
     name: 'Caja', 
     icon: Wallet, 
-    component: CajaModuleMock, 
+    component: CajaModule, 
     allowedRoles: ['ADMIN', 'MESERO'] 
   },
   { 

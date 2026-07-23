@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Layout } from './components/Layout'
 import { LoginModule } from './features/Auth/LoginModule'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { SedeProvider } from './context/SedeContext'
 import { AccountSuspendedView, AccountPendingView } from './features/Auth/AccountStatusViews'
 import { APP_ROUTES } from './config/navigation'
 
@@ -19,17 +20,17 @@ function AppRoutes() {
   }
 
   // Si el usuario está pendiente, no lo dejamos ver nada
-  if (userProfile?.rol === 'PENDIENTE') {
+  if (userProfile?.roles?.includes('PENDIENTE')) {
     return <AccountPendingView />
   }
 
-  const rol = userProfile?.rol
+  const userRoles = userProfile?.roles || []
 
   return (
     <BrowserRouter>
       <Layout>
         <Routes>
-          {APP_ROUTES.filter(route => route.allowedRoles.includes(rol)).map(route => {
+          {APP_ROUTES.filter(route => route.allowedRoles.some(r => userRoles.includes(r))).map(route => {
             const Element = route.component;
             return <Route key={route.path} path={route.path} element={<Element />} />
           })}
@@ -38,7 +39,7 @@ function AppRoutes() {
           <Route path="*" element={
             <div className="p-8 text-center">
               <h1 className="text-2xl font-bold text-slate-800">403 Acceso Denegado</h1>
-              <p className="text-slate-500 mt-2">No tienes permiso para ver este módulo con tu rol de {rol}.</p>
+              <p className="text-slate-500 mt-2">No tienes permiso para ver este módulo con tus roles: {userRoles.join(', ')}.</p>
             </div>
           } />
         </Routes>
@@ -50,7 +51,9 @@ function AppRoutes() {
 function App() {
   return (
     <AuthProvider>
-      <AppRoutes />
+      <SedeProvider>
+        <AppRoutes />
+      </SedeProvider>
     </AuthProvider>
   )
 }
