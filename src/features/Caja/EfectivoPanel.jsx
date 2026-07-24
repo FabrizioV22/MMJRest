@@ -43,7 +43,7 @@ export function EfectivoPanel({ arqueo, setArqueo, totalEfectivo }) {
                   S/ {den.toFixed(2)}
                 </span>
               </div>
-              <span className="text-slate-300 text-[10px] font-bold w-3 text-center">×</span>
+              <span className="text-slate-400 text-[10px] font-bold w-3 text-center">×</span>
               <input
                 type="number" 
                 inputMode="decimal"
@@ -54,9 +54,9 @@ export function EfectivoPanel({ arqueo, setArqueo, totalEfectivo }) {
                 onChange={e => setArqueo({ ...arqueo, [den]: parseInt(e.target.value) || 0 })}
                 className="w-full max-w-[4.5rem] mx-auto py-1.5 bg-white border border-slate-200 rounded-xl text-center font-bold text-sm outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-500/10 min-h-[40px]"
               />
-              <span className="text-slate-300 text-[10px] font-bold w-3 text-center">=</span>
+              <span className="text-slate-400 text-[10px] font-bold w-3 text-center">=</span>
               <div className="w-[5rem] text-right">
-                <span className={`text-sm font-black tabular-nums ${subtotal > 0 ? 'text-slate-900' : 'text-slate-300'}`}>
+                <span className={`text-sm font-black tabular-nums ${subtotal > 0 ? 'text-slate-900' : 'text-slate-500'}`}>
                   {fmt(subtotal)}
                 </span>
               </div>

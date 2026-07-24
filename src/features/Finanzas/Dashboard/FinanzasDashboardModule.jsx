@@ -68,10 +68,11 @@ export function FinanzasDashboardModule() {
           </div>
 
           {/* Selector de Sede */}
-          <div className="flex items-center space-x-2 bg-white border border-slate-200 rounded-xl px-3 py-1.5 shadow-sm focus-within:border-emerald-500">
+          <div className="flex items-center space-x-2 bg-white border border-slate-200 rounded-xl px-3 py-1.5 shadow-sm focus-within:border-amber-600">
             <Filter size={15} className="text-slate-400" />
             <select 
               value={finanzas.filterSede}
+              aria-label="Filtrar por sede"
               onChange={(e) => finanzas.setFilterSede(e.target.value)}
               className="bg-transparent text-xs font-bold text-slate-700 outline-none cursor-pointer pr-2"
             >
@@ -87,6 +88,7 @@ export function FinanzasDashboardModule() {
             <Calendar size={15} className="text-slate-400 shrink-0" />
             <input 
               type="date" 
+              aria-label="Fecha de inicio"
               value={finanzas.dateRange.start}
               onChange={(e) => {
                 setActivePreset('CUSTOM')
@@ -97,6 +99,7 @@ export function FinanzasDashboardModule() {
             <span className="text-slate-300">-</span>
             <input 
               type="date" 
+              aria-label="Fecha de fin"
               value={finanzas.dateRange.end}
               onChange={(e) => {
                 setActivePreset('CUSTOM')

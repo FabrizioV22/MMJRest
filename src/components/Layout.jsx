@@ -65,6 +65,7 @@ export function Layout({ children }) {
             {!isCollapsed && (
               <select 
                 value={activeSede?.id || ''} 
+                aria-label="Seleccionar sede de trabajo"
                 onChange={(e) => changeSede(e.target.value)}
                 className="bg-transparent text-xs font-bold text-amber-100 outline-none w-full cursor-pointer appearance-none"
               >
@@ -133,6 +134,7 @@ export function Layout({ children }) {
               <MapPin size={13} className="text-amber-500 shrink-0" />
               <select 
                 value={activeSede?.id || ''} 
+                aria-label="Seleccionar sede de trabajo"
                 onChange={(e) => changeSede(e.target.value)}
                 className="bg-transparent text-xs font-bold text-amber-100 outline-none cursor-pointer appearance-none pr-1"
               >
