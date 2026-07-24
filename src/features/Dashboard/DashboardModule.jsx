@@ -140,7 +140,7 @@ export function DashboardModule() {
             <Package size={24} strokeWidth={1.75} />
           </div>
           <div>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Productos</p>
+            <p className="text-xs font-bold text-slate-600 uppercase tracking-wider">Total Productos</p>
             <h3 className="text-2xl font-black text-slate-900 mt-0.5 tabular-nums">{stats?.totalProducts}</h3>
           </div>
         </div>
@@ -151,7 +151,7 @@ export function DashboardModule() {
             <AlertTriangle size={24} strokeWidth={1.75} />
           </div>
           <div>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Alertas de Stock</p>
+            <p className="text-xs font-bold text-slate-600 uppercase tracking-wider">Alertas de Stock</p>
             <h3 className="text-2xl font-black text-slate-900 mt-0.5 tabular-nums">{stats?.lowStockItems}</h3>
           </div>
         </div>
@@ -162,7 +162,7 @@ export function DashboardModule() {
             <FolderOpen size={24} strokeWidth={1.75} />
           </div>
           <div>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Categorías Activas</p>
+            <p className="text-xs font-bold text-slate-600 uppercase tracking-wider">Categorías Activas</p>
             <h3 className="text-2xl font-black text-slate-900 mt-0.5 tabular-nums">{stats?.totalCategories}</h3>
           </div>
         </div>

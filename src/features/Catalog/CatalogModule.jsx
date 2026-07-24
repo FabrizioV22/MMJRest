@@ -256,7 +256,7 @@ export function CatalogModule() {
             <h3 className="text-xl font-bold" style={{ color: formAccent }}>
               {isEditMode ? 'Editar' : 'Crear'} {viewState === 'FORM_PROD' ? 'Producto' : viewState === 'FORM_CAT' ? 'Categoría' : 'Área'}
             </h3>
-            <button onClick={cancelView} className="p-2 text-slate-400 hover:bg-slate-100 rounded-full cursor-pointer"><X size={20} /></button>
+            <button onClick={cancelView} aria-label="Cerrar formulario" title="Cerrar" className="p-2 text-slate-400 hover:bg-slate-100 rounded-full cursor-pointer"><X size={20} /></button>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -382,8 +382,8 @@ export function CatalogModule() {
             {filteredAreas.map(area => (
               <div key={area.id} onClick={() => handleOpenArea(area.id)} className="bg-white p-6 rounded-2xl card-soft border border-slate-100 hover:border-slate-300 cursor-pointer group flex flex-col items-center justify-center text-center space-y-3 relative min-h-[160px]">
                 <div className="absolute top-3 right-3 flex space-x-1 opacity-0 group-hover:opacity-100">
-                  <button onClick={(e) => openEditArea(e, area)} className="p-1.5 text-slate-400 hover:text-slate-700 bg-slate-50 rounded-lg cursor-pointer"><Edit2 size={14}/></button>
-                  <button onClick={(e) => confirmDelete(e, area, 'AREA')} className="p-1.5 text-slate-400 hover:text-red-600 bg-slate-50 rounded-lg cursor-pointer"><Trash2 size={14}/></button>
+                  <button onClick={(e) => openEditArea(e, area)} aria-label={`Editar área ${area.nombre}`} title="Editar área" className="p-1.5 text-slate-400 hover:text-slate-700 bg-slate-50 rounded-lg cursor-pointer"><Edit2 size={14}/></button>
+                  <button onClick={(e) => confirmDelete(e, area, 'AREA')} aria-label={`Eliminar área ${area.nombre}`} title="Eliminar área" className="p-1.5 text-slate-400 hover:text-red-600 bg-slate-50 rounded-lg cursor-pointer"><Trash2 size={14}/></button>
                 </div>
                 <div className="w-14 h-14 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform" style={{ backgroundColor: levelTheme.area.accentLight, color: levelTheme.area.accent }}>
                   <Layers size={28} strokeWidth={1.5} />
@@ -423,8 +423,8 @@ export function CatalogModule() {
             {filteredCategories.map(cat => (
               <div key={cat.id} onClick={() => handleOpenCategory(cat.id)} className="bg-white p-6 rounded-2xl card-soft border cursor-pointer group flex flex-col items-center justify-center text-center space-y-3 relative min-h-[160px]" style={{ borderColor: levelTheme.category.accentBorder + '60' }}>
                 <div className="absolute top-3 right-3 flex space-x-1 opacity-0 group-hover:opacity-100">
-                  <button onClick={(e) => openEditCategory(e, cat)} className="p-1.5 text-slate-400 hover:text-indigo-600 bg-slate-50 rounded-lg cursor-pointer"><Edit2 size={14}/></button>
-                  <button onClick={(e) => confirmDelete(e, cat, 'CATEGORY')} className="p-1.5 text-slate-400 hover:text-red-600 bg-slate-50 rounded-lg cursor-pointer"><Trash2 size={14}/></button>
+                  <button onClick={(e) => openEditCategory(e, cat)} aria-label={`Editar categoría ${cat.nombre}`} title="Editar categoría" className="p-1.5 text-slate-400 hover:text-indigo-600 bg-slate-50 rounded-lg cursor-pointer"><Edit2 size={14}/></button>
+                  <button onClick={(e) => confirmDelete(e, cat, 'CATEGORY')} aria-label={`Eliminar categoría ${cat.nombre}`} title="Eliminar categoría" className="p-1.5 text-slate-400 hover:text-red-600 bg-slate-50 rounded-lg cursor-pointer"><Trash2 size={14}/></button>
                 </div>
                 <div className="w-14 h-14 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform" style={{ backgroundColor: levelTheme.category.accentLight, color: levelTheme.category.accent }}>
                   <FolderOpen size={28} strokeWidth={1.5} />
@@ -596,12 +596,12 @@ export function CatalogModule() {
               <h3 className={`text-xl font-black flex items-center ${txType === 'INGRESO' ? 'text-emerald-800' : 'text-red-800'}`}>
                 {txType === 'INGRESO' ? <ArrowDownCircle className="mr-2"/> : <ArrowUpCircle className="mr-2"/>} Registrar {txType}
               </h3>
-              <button onClick={cancelView} className="p-2 cursor-pointer rounded-lg hover:bg-black/5"><X size={22} /></button>
+              <button onClick={cancelView} aria-label="Cerrar modal" title="Cerrar" className="p-2 cursor-pointer rounded-lg hover:bg-black/5"><X size={22} /></button>
             </div>
             <div className="p-6 space-y-6">
               <div>
                 <label className="block text-sm font-bold text-slate-600 mb-2">Cantidad a {txType === 'INGRESO' ? 'sumar' : 'restar'}</label>
-                <input type="number" step="0.01" min="0" value={txAmount} onChange={e => setTxAmount(e.target.value)} autoFocus className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-200 rounded-2xl outline-none text-3xl font-black text-center focus:border-slate-400" />
+                <input type="number" inputMode="decimal" step="0.01" min="0" aria-label="Cantidad de movimiento" value={txAmount} onChange={e => setTxAmount(e.target.value)} autoFocus className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-200 rounded-2xl outline-none text-3xl font-black text-center focus:border-slate-400 min-h-[44px]" />
               </div>
               <div>
                 <label className="block text-sm font-bold text-slate-600 mb-2">Observación (opcional)</label>

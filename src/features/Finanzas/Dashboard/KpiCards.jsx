@@ -16,7 +16,7 @@ export function KpiCards({ kpis }) {
           <TrendingUp size={22} strokeWidth={1.75} />
         </div>
         <div className="min-w-0">
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider truncate">Ingresos Operativos</p>
+          <p className="text-[11px] font-bold text-slate-600 uppercase tracking-wider truncate">Ingresos Operativos</p>
           <h3 className="text-xl font-black text-slate-900 mt-0.5 tabular-nums truncate">S/ {fmt(kpis.ingresosTotales)}</h3>
         </div>
       </div>
@@ -28,7 +28,7 @@ export function KpiCards({ kpis }) {
           <TrendingDown size={22} strokeWidth={1.75} />
         </div>
         <div className="min-w-0">
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider truncate">Total Egresos</p>
+          <p className="text-[11px] font-bold text-slate-600 uppercase tracking-wider truncate">Total Egresos</p>
           <h3 className="text-xl font-black text-rose-700 mt-0.5 tabular-nums truncate">S/ {fmt(kpis.egresosTotales)}</h3>
         </div>
       </div>
@@ -40,7 +40,7 @@ export function KpiCards({ kpis }) {
           <DollarSign size={22} strokeWidth={1.75} />
         </div>
         <div className="min-w-0">
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider truncate">Ganancia Neta</p>
+          <p className="text-[11px] font-bold text-slate-600 uppercase tracking-wider truncate">Ganancia Neta</p>
           <h3 className={`text-xl font-black mt-0.5 tabular-nums truncate ${isNetPositive ? 'text-amber-900' : 'text-rose-700'}`}>
             S/ {fmt(kpis.gananciaNeta)}
           </h3>
@@ -54,7 +54,7 @@ export function KpiCards({ kpis }) {
           <PieChart size={22} strokeWidth={1.75} />
         </div>
         <div className="min-w-0">
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider truncate">Cierres Evaluados</p>
+          <p className="text-[11px] font-bold text-slate-600 uppercase tracking-wider truncate">Cierres Evaluados</p>
           <h3 className="text-2xl font-black text-slate-900 mt-0.5 tabular-nums truncate">{kpis.totalTurnos}</h3>
         </div>
       </div>
@@ -66,7 +66,7 @@ export function KpiCards({ kpis }) {
           <Activity size={22} strokeWidth={1.75} />
         </div>
         <div className="min-w-0">
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider truncate">Prom. Descuadre</p>
+          <p className="text-[11px] font-bold text-slate-600 uppercase tracking-wider truncate">Prom. Descuadre</p>
           <h3 className={`text-xl font-black mt-0.5 tabular-nums truncate ${isDiffPositive ? 'text-emerald-700' : 'text-rose-700'}`}>
             {isDiffPositive ? '+' : ''}S/ {fmt(kpis.promedioDiferencia)}
           </h3>
