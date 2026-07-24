@@ -24,13 +24,12 @@ export function useFinanzas() {
   const fetchData = async () => {
     setLoading(true)
     try {
-      const start = dateRange.start ? new Date(dateRange.start).toISOString() : null;
-      // Para end date incluimos todo el día
-      let end = null;
+      const start = dateRange.start ? new Date(dateRange.start).toISOString() : null
+      let end = null
       if (dateRange.end) {
-        const endDate = new Date(dateRange.end);
-        endDate.setHours(23, 59, 59, 999);
-        end = endDate.toISOString();
+        const endDate = new Date(dateRange.end)
+        endDate.setHours(23, 59, 59, 999)
+        end = endDate.toISOString()
       }
 
       const turnosData = await finanzasService.getHistoricalTurnos(start, end, filterSede)
@@ -47,50 +46,74 @@ export function useFinanzas() {
     }
   }
 
-  // Cálculos Memoizados
-  const kpis = useMemo(() => {
-    if (!turnos.length) return { ingresosTotales: 0, promedioDiferencia: 0, totalMovimientos: 0 }
-    
-    // Total ingresos (sum of ventas in movimientos or just monto_cierre_esperado - diff)
-    // Para ser precisos, sumamos los ingresos operativos de cajas_movimientos (categoria Ventas y Extras)
-    const ingresos = movimientos
-      .filter(m => m.tipo === 'INGRESO' && (m.categoria === 'Ventas' || m.categoria === 'Extras'))
-      .reduce((sum, m) => sum + Number(m.monto), 0)
+  // Mapa de turno_id -> { ingresos, egresos }
+  const turnoFlowsMap = useMemo(() => {
+    const map = {}
+    movimientos.forEach(m => {
+      if (!map[m.turno_id]) {
+        map[m.turno_id] = { ingresos: 0, egresos: 0 }
+      }
+      const monto = Number(m.monto || 0)
+      if (m.tipo === 'INGRESO') {
+        map[m.turno_id].ingresos += monto
+      } else if (m.tipo === 'EGRESO') {
+        map[m.turno_id].egresos += monto
+      }
+    })
+    return map
+  }, [movimientos])
 
-    // Diferencia promedio (absoluta o neta)
+  // KPIs Memoizados completos
+  const kpis = useMemo(() => {
+    if (!turnos.length) {
+      return { ingresosTotales: 0, egresosTotales: 0, gananciaNeta: 0, promedioDiferencia: 0, totalTurnos: 0 }
+    }
+
+    const ingresos = movimientos
+      .filter(m => m.tipo === 'INGRESO')
+      .reduce((sum, m) => sum + Number(m.monto || 0), 0)
+
+    const egresos = movimientos
+      .filter(m => m.tipo === 'EGRESO')
+      .reduce((sum, m) => sum + Number(m.monto || 0), 0)
+
+    const gananciaNeta = ingresos - egresos
+
     const sumaDiferencias = turnos.reduce((sum, t) => sum + Number(t.diferencia || 0), 0)
     const promedioDiferencia = sumaDiferencias / turnos.length
 
     return {
       ingresosTotales: ingresos,
-      promedioDiferencia: promedioDiferencia,
+      egresosTotales: egresos,
+      gananciaNeta,
+      promedioDiferencia,
       totalTurnos: turnos.length
     }
   }, [turnos, movimientos])
 
+  // Comparativa Diaria por Sede (Bar Chart)
   const chartSedesData = useMemo(() => {
     if (!turnos.length) return []
-    // Comparativa de Sedes (Bar Chart Agrupado): Eje X (Dias), Y (Ingresos), Series (Lince, Pueblo Libre)
-    const dataMap = {} // { '2026-07-23': { date: '23/07', Lince: 1500, 'Pueblo Libre': 2000 } }
+    const dataMap = {}
 
-    // Necesitamos mapear movimientos a su sede (vía turno)
     const turnoMap = turnos.reduce((acc, t) => {
       acc[t.id] = t
       return acc
     }, {})
 
     movimientos.forEach(m => {
-      if (m.tipo === 'INGRESO' && (m.categoria === 'Ventas' || m.categoria === 'Extras')) {
+      if (m.tipo === 'INGRESO') {
         const turno = turnoMap[m.turno_id]
-        if (!turno) return
+        if (!turno || !turno.fecha_cierre) return
         
-        const sedeNombre = turno.sedes.nombre
-        // Extract day
-        const dateKey = new Date(turno.fecha_cierre).toISOString().split('T')[0]
+        const sedeNombre = turno.sedes?.nombre || 'Sede'
+        const dateObj = new Date(turno.fecha_cierre)
+        if (isNaN(dateObj.getTime())) return
+        const dateKey = dateObj.toISOString().split('T')[0]
         
         if (!dataMap[dateKey]) {
           dataMap[dateKey] = { 
-            name: new Date(turno.fecha_cierre).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }), 
+            name: dateObj.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }), 
             dateKey 
           }
         }
@@ -101,20 +124,58 @@ export function useFinanzas() {
     return Object.values(dataMap).sort((a, b) => a.dateKey.localeCompare(b.dateKey))
   }, [turnos, movimientos])
 
+  // Tendencia Mensual de Ganancias por Sede (AreaChart / LineChart)
+  const monthlyTrendData = useMemo(() => {
+    if (!turnos.length) return []
+    const dataMap = {}
+    const turnoMap = turnos.reduce((acc, t) => {
+      acc[t.id] = t
+      return acc
+    }, {})
+
+    movimientos.forEach(m => {
+      const turno = turnoMap[m.turno_id]
+      if (!turno || !turno.fecha_cierre) return
+
+      const dateObj = new Date(turno.fecha_cierre)
+      if (isNaN(dateObj.getTime())) return
+
+      const yearMonthKey = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}`
+      const monthLabel = dateObj.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' })
+      const sedeNombre = turno.sedes?.nombre || 'Sede'
+      const monto = Number(m.monto || 0)
+      const delta = m.tipo === 'INGRESO' ? monto : -monto
+
+      if (!dataMap[yearMonthKey]) {
+        dataMap[yearMonthKey] = {
+          name: monthLabel,
+          key: yearMonthKey,
+          total: 0
+        }
+      }
+
+      dataMap[yearMonthKey][sedeNombre] = (dataMap[yearMonthKey][sedeNombre] || 0) + delta
+      dataMap[yearMonthKey].total += delta
+    })
+
+    return Object.values(dataMap).sort((a, b) => a.key.localeCompare(b.key))
+  }, [turnos, movimientos])
+
+  // Distribución global de métodos de pago (Donut Chart)
   const paymentMethodsData = useMemo(() => {
     const methods = {}
     movimientos.forEach(m => {
-      if (m.tipo === 'INGRESO' && (m.categoria === 'Ventas' || m.categoria === 'Extras')) {
+      if (m.tipo === 'INGRESO') {
         methods[m.metodo_pago] = (methods[m.metodo_pago] || 0) + Number(m.monto)
       }
     })
 
     const COLORS = {
-      'Efectivo': '#10B981', // emerald-500
-      'Yape': '#8B5CF6',     // violet-500
-      'Plin': '#14B8A6',     // teal-500
-      'Visa': '#3B82F6',     // blue-500
-      'Transferencia': '#6366F1' // indigo-500
+      'Efectivo': '#10B981',
+      'Yape': '#8B5CF6',
+      'Plin': '#14B8A6',
+      'Visa': '#3B82F6',
+      'Transferencia': '#6366F1'
     }
 
     return Object.entries(methods).map(([name, value]) => ({
@@ -124,12 +185,64 @@ export function useFinanzas() {
     }))
   }, [movimientos])
 
+  // Evolución de métodos de pago en el tiempo (Stacked Area Chart)
+  const paymentMethodsTrendData = useMemo(() => {
+    if (!turnos.length || !movimientos.length) return []
+
+    const turnoMap = turnos.reduce((acc, t) => {
+      acc[t.id] = t
+      return acc
+    }, {})
+
+    const dataMap = {}
+
+    movimientos.forEach(m => {
+      if (m.tipo !== 'INGRESO') return
+      const turno = turnoMap[m.turno_id]
+      if (!turno || !turno.fecha_cierre) return
+
+      const dateObj = new Date(turno.fecha_cierre)
+      if (isNaN(dateObj.getTime())) return
+
+      const yearMonthKey = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}`
+      const monthLabel = dateObj.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' })
+      const metodo = m.metodo_pago || 'Otro'
+      const monto = Number(m.monto || 0)
+
+      if (!dataMap[yearMonthKey]) {
+        dataMap[yearMonthKey] = {
+          name: monthLabel,
+          key: yearMonthKey,
+          Efectivo: 0,
+          Yape: 0,
+          Plin: 0,
+          Visa: 0,
+          Transferencia: 0,
+          total: 0
+        }
+      }
+
+      if (dataMap[yearMonthKey][metodo] === undefined) {
+        dataMap[yearMonthKey][metodo] = 0
+      }
+
+      dataMap[yearMonthKey][metodo] += monto
+      dataMap[yearMonthKey].total += monto
+    })
+
+    return Object.values(dataMap).sort((a, b) => a.key.localeCompare(b.key))
+  }, [turnos, movimientos])
+
   return {
     loading,
     turnos,
+    movimientos,
+    turnoFlowsMap,
     kpis,
     chartSedesData,
+    monthlyTrendData,
     paymentMethodsData,
+    paymentMethodsTrendData,
     dateRange, setDateRange,
     filterSede, setFilterSede,
     sedesDisponibles
