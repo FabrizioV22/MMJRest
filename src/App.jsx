@@ -1,9 +1,10 @@
 import React from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Layout } from './components/Layout'
 import { LoginModule } from './features/Auth/LoginModule'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { SedeProvider } from './context/SedeContext'
+import { ToastProvider } from './context/ToastContext'
 import { AccountSuspendedView, AccountPendingView } from './features/Auth/AccountStatusViews'
 import { APP_ROUTES } from './config/navigation'
 
@@ -14,12 +15,10 @@ function AppRoutes() {
     return <LoginModule />
   }
 
-  // Si el usuario está inactivo, lo bloqueamos
   if (userProfile?.activo === false) {
     return <AccountSuspendedView />
   }
 
-  // Si el usuario está pendiente, no lo dejamos ver nada
   if (userProfile?.roles?.includes('PENDIENTE')) {
     return <AccountPendingView />
   }
@@ -35,7 +34,6 @@ function AppRoutes() {
             return <Route key={route.path} path={route.path} element={<Element />} />
           })}
           
-          {/* Fallback si intenta ir a una ruta que no tiene acceso */}
           <Route path="*" element={
             <div className="p-8 text-center">
               <h1 className="text-2xl font-bold text-slate-800">403 Acceso Denegado</h1>
@@ -52,7 +50,9 @@ function App() {
   return (
     <AuthProvider>
       <SedeProvider>
-        <AppRoutes />
+        <ToastProvider>
+          <AppRoutes />
+        </ToastProvider>
       </SedeProvider>
     </AuthProvider>
   )

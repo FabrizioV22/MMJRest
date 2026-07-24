@@ -53,23 +53,82 @@ export function HistoryTable({ turnos, turnoFlowsMap = {} }) {
     <div className="bg-white rounded-2xl card-soft border border-slate-100 overflow-hidden mt-6">
       <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/50">
         <div className="flex items-center space-x-2">
-          <Clock className="text-slate-400" size={18} />
-          <h3 className="font-bold text-slate-700 text-sm">Auditoría Histórica de Cierres</h3>
-          <span className="text-xs font-bold text-slate-400 bg-slate-200/60 px-2 py-0.5 rounded-full">{turnos.length} registros</span>
+          <Clock className="text-amber-700" size={18} />
+          <h3 className="font-bold text-slate-800 text-sm">Auditoría Histórica de Cierres</h3>
+          <span className="text-xs font-bold text-slate-400 bg-amber-100/60 text-amber-900 px-2 py-0.5 rounded-full">{turnos.length} cierres</span>
         </div>
         
         {turnos.length > 0 && (
           <button
             onClick={handleExportCSV}
-            className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-xs font-bold text-slate-700 shadow-sm transition-all hover:bg-slate-50 cursor-pointer self-start sm:self-auto"
+            className="inline-flex items-center space-x-1.5 px-3.5 py-2 bg-amber-50 border border-amber-200 hover:bg-amber-100 rounded-xl text-xs font-bold text-amber-900 shadow-sm transition-all cursor-pointer self-start sm:self-auto"
           >
-            <Download size={14} className="text-emerald-600" />
+            <Download size={14} className="text-amber-700" />
             <span>Exportar CSV</span>
           </button>
         )}
       </div>
       
-      <div className="overflow-x-auto">
+      {/* Mobile View: Card list */}
+      <div className="md:hidden divide-y divide-slate-100">
+        {turnos.length === 0 ? (
+          <div className="p-8 text-center text-slate-400 text-sm">No hay cierres de caja registrados en este rango.</div>
+        ) : (
+          turnos.map(turno => {
+            const diff = Number(turno.diferencia || 0)
+            const isAnulada = turno.estado === 'ANULADA'
+            const flows = turnoFlowsMap[turno.id] || { ingresos: 0, egresos: 0 }
+
+            return (
+              <div key={turno.id} className="p-4 space-y-2.5">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <span className="font-bold text-sm text-slate-900">{turno.sedes?.nombre}</span>
+                    <p className="text-xs text-slate-500 font-medium">
+                      {new Date(turno.fecha_cierre).toLocaleString('es-PE', { 
+                        day: '2-digit', month: '2-digit', year: 'numeric',
+                        hour: '2-digit', minute: '2-digit' 
+                      })}
+                    </p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">{turno.usuarios?.nombre_completo}</p>
+                  </div>
+
+                  <span className={`inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs font-bold ${
+                    isAnulada ? 'bg-slate-100 text-slate-600' : 'bg-emerald-100 text-emerald-800'
+                  }`}>
+                    {isAnulada ? <XCircle size={13} /> : <CheckCircle size={13} />}
+                    <span>{turno.estado}</span>
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                  <div>
+                    <span className="text-[10px] text-slate-400 font-bold block uppercase">Ingresos</span>
+                    <span className="font-bold text-emerald-700">S/ {fmt(flows.ingresos)}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-slate-400 font-bold block uppercase">Egresos</span>
+                    <span className="font-bold text-rose-600">S/ {fmt(flows.egresos)}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-slate-400 font-bold block uppercase">Físico Real</span>
+                    <span className="font-black text-slate-900">S/ {fmt(turno.monto_cierre_real)}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-slate-400 font-bold block uppercase">Descuadre</span>
+                    <span className={`font-black ${diff === 0 ? 'text-emerald-600' : diff > 0 ? 'text-amber-700' : 'text-rose-600'}`}>
+                      {diff > 0 ? '+' : ''}S/ {fmt(diff)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )
+          })
+        )}
+      </div>
+
+      {/* Desktop View: Table */}
+      <div className="hidden md:block overflow-x-auto">
         {turnos.length === 0 ? (
           <div className="p-12 text-center text-slate-400 text-sm">No hay cierres de caja en este rango.</div>
         ) : (
@@ -110,17 +169,17 @@ export function HistoryTable({ turnos, turnoFlowsMap = {} }) {
                     <td className="p-4 text-sm text-right tabular-nums text-slate-500">
                       {fmt(turno.monto_apertura)}
                     </td>
-                    <td className="p-4 text-sm text-right tabular-nums text-emerald-600 font-bold">
+                    <td className="p-4 text-sm text-right tabular-nums text-emerald-700 font-bold">
                       S/ {fmt(flows.ingresos)}
                     </td>
-                    <td className="p-4 text-sm text-right tabular-nums text-rose-500 font-bold">
+                    <td className="p-4 text-sm text-right tabular-nums text-rose-600 font-bold">
                       S/ {fmt(flows.egresos)}
                     </td>
                     <td className="p-4 text-sm font-bold text-right tabular-nums text-slate-900">
                       S/ {fmt(turno.monto_cierre_real)}
                     </td>
                     <td className={`p-4 text-sm font-black text-right tabular-nums ${
-                      diff === 0 ? 'text-emerald-500' : diff > 0 ? 'text-blue-500' : 'text-red-500'
+                      diff === 0 ? 'text-emerald-600' : diff > 0 ? 'text-amber-700' : 'text-rose-600'
                     }`}>
                       {diff > 0 ? '+' : ''}S/ {fmt(diff)}
                     </td>
@@ -128,7 +187,7 @@ export function HistoryTable({ turnos, turnoFlowsMap = {} }) {
                       <span className={`inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs font-bold ${
                         isAnulada 
                           ? 'bg-slate-100 text-slate-500'
-                          : 'bg-emerald-100 text-emerald-700'
+                          : 'bg-emerald-100 text-emerald-800'
                       }`}>
                         {isAnulada ? <XCircle size={13} /> : <CheckCircle size={13} />}
                         <span>{turno.estado}</span>
