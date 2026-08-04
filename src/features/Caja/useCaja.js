@@ -106,11 +106,19 @@ export function useCaja() {
   const totalPropinas = propinas.reduce((acc, p) => acc + (Number(p.monto) || 0), 0)
   const totalIngresosExtra = (Number(ingresosExtra.Baño) || 0) + (Number(ingresosExtra.Fresquitos) || 0)
   const totalDigitales = METODOS_DIGITALES.reduce((acc, m) => acc + (Number(digitales[m]) || 0), 0)
+  
+  // Ventas en efectivo según el POS (el reporte del POS ya incluye el monto de apertura inicial S/ 100)
   const ventasEfectivo = Math.max(0, Number(ventasPOS) - totalDigitales)
+  
+  // Puesto que ventasPOS ya incluye el monto_apertura, NO se le vuelve a sumar monto_apertura al efectivo esperado en caja:
   const montoEsperado = turnoActivo
-    ? Number(turnoActivo.monto_apertura) + ventasEfectivo + totalIngresosExtra - totalGastos - totalPropinas
+    ? ventasEfectivo + totalIngresosExtra - totalGastos - totalPropinas
     : 0
   const diferencia = totalEfectivo - montoEsperado
+
+  // Ventas reales en efectivo para registrar en la base de datos (excluye el fondo inicial para no inflar Finanzas):
+  const montoAperturaNum = turnoActivo ? Number(turnoActivo.monto_apertura || 0) : 0
+  const realVentasEfectivo = Math.max(0, ventasEfectivo - montoAperturaNum)
 
   // ── Acciones ──
   const handleAbrirCaja = async (e) => {
@@ -151,7 +159,9 @@ export function useCaja() {
     Object.entries(digitales).forEach(([m, v]) => {
       if (Number(v) > 0) movs.push({ tipo: 'INGRESO', categoria: 'Ventas', descripcion: `Ventas por ${m}`, monto: Number(v), metodo_pago: m })
     })
-    if (ventasEfectivo > 0) movs.push({ tipo: 'INGRESO', categoria: 'Ventas', descripcion: 'Ventas en Efectivo (Calculadas)', monto: ventasEfectivo, metodo_pago: 'Efectivo' })
+    if (realVentasEfectivo > 0) {
+      movs.push({ tipo: 'INGRESO', categoria: 'Ventas', descripcion: 'Ventas en Efectivo (Netas)', monto: realVentasEfectivo, metodo_pago: 'Efectivo' })
+    }
     Object.entries(ingresosExtra).forEach(([k, v]) => {
       if (Number(v) > 0) movs.push({ tipo: 'INGRESO', categoria: 'Extras', descripcion: k, monto: Number(v), metodo_pago: 'Efectivo' })
     })
@@ -191,7 +201,7 @@ export function useCaja() {
     nuevoFondo, setNuevoFondo,
     // Cálculos
     totalEfectivo, totalGastos, totalPropinas,
-    totalIngresosExtra, totalDigitales, montoEsperado, diferencia,
+    totalIngresosExtra, totalDigitales, ventasEfectivo, realVentasEfectivo, montoEsperado, diferencia,
     // Acciones
     handleAbrirCaja, handleGuardarFondo, handleCerrarCaja,
   }

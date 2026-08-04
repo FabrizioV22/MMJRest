@@ -44,7 +44,7 @@ export function CajaModule() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
-          <h2 className="font-display text-2xl font-bold text-slate-900">Cuadre de Caja</h2>
+          <h2 className="text-2xl font-bold text-[#1F2937]">Cuadre de Caja</h2>
           <div className="flex flex-wrap items-center gap-2 mt-1">
             <span className="inline-flex items-center space-x-1.5 text-xs text-slate-400">
               <Clock size={12} />
@@ -127,6 +127,7 @@ export function CajaModule() {
             totalPropinas={caja.totalPropinas}
             totalIngresosExtra={caja.totalIngresosExtra}
             ventasPOS={caja.ventasPOS}
+            ventasEfectivo={caja.ventasEfectivo}
             montoEsperado={caja.montoEsperado}
             diferencia={caja.diferencia}
             editandoFondo={caja.editandoFondo} setEditandoFondo={caja.setEditandoFondo}

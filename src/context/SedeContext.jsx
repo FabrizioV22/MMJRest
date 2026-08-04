@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { cajaService } from '../services/cajaService'
+import { userService } from '../services/userService'
 import { useAuth } from './AuthContext'
 
 const SedeContext = createContext({})
@@ -28,7 +29,21 @@ export const SedeProvider = ({ children }) => {
 
   const loadSedes = async () => {
     try {
-      const data = await cajaService.getSedes()
+      // Intentar cargar sedes asignadas al usuario en vez de todas las sedes
+      // Si el backend aún no está migrado o falla, caer al fallback global
+      let data = [];
+      try {
+        data = await userService.getSedesDelUsuario(userId);
+      } catch (err) {
+        console.warn("No se pudieron cargar sedes por usuario, usando fallback", err);
+      }
+
+      
+      // Fallback a getSedes() general si no trajo nada (e.g. antes de la migración)
+      if (!data || data.length === 0) {
+        data = await cajaService.getSedes()
+      }
+      
       setSedes(data)
       
       // Intentar cargar la última sede usada de localStorage

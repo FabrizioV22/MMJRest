@@ -39,8 +39,8 @@ export function FinanzasDashboardModule() {
       {/* HEADER Y FILTROS */}
       <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
         <div>
-          <h2 className="font-display text-2xl font-bold text-slate-900">Dashboard Gerencial</h2>
-          <p className="text-slate-400 text-sm mt-0.5">Inteligencia de negocios, tendencias e historial analítico</p>
+          <h2 className="text-2xl font-bold text-[#1F2937]">Dashboard Gerencial</h2>
+          <p className="text-[#6B7280] text-sm mt-0.5">Inteligencia de negocios, tendencias e historial analítico</p>
         </div>
         
         <div className="flex flex-wrap items-center gap-3">
@@ -58,7 +58,7 @@ export function FinanzasDashboardModule() {
                 onClick={() => applyPreset(p.id)}
                 className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                   activePreset === p.id 
-                    ? 'bg-emerald-500 text-white shadow-sm font-black' 
+                    ? 'bg-[#A16207] text-white shadow-sm font-black' 
                     : 'hover:text-slate-900 hover:bg-slate-50'
                 }`}
               >

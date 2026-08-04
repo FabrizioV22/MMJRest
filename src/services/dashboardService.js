@@ -1,60 +1,126 @@
 import { supabase } from '../lib/supabase'
 
 export const dashboardService = {
-  getLowStockProducts: async (threshold = 15) => {
-    const { data, error } = await supabase
-      .from('productos')
-      .select('id, nombre, stock_actual, unidad_medida, categorias(nombre)')
-      .eq('activo', true)
-      .lte('stock_actual', threshold)
-      .order('stock_actual', { ascending: true })
-      .limit(8)
-    if (error) throw error
-    return data
+  getLowStockProducts: async (sedeId, threshold = 10) => {
+    try {
+      let query = supabase
+        .from('stock_sedes')
+        .select('stock_actual, sedes(id, nombre), productos!inner(id, nombre, unidad_medida, activo, categorias(id, nombre))')
+        .eq('productos.activo', true)
+        .lt('stock_actual', threshold)
+        .order('stock_actual', { ascending: true })
+
+      if (sedeId) {
+        query = query.eq('sede_id', sedeId)
+      }
+
+      const { data, error } = await query.limit(10)
+
+      if (error) {
+        console.error('Error fetching low stock products:', error)
+        return []
+      }
+
+      return (data || []).map(s => ({
+        ...s.productos,
+        stock_actual: Number(s.stock_actual),
+        sede_nombre: s.sedes?.nombre
+      }))
+    } catch (err) {
+      console.error('Catch error in getLowStockProducts:', err)
+      return []
+    }
   },
 
-  getRecentMovements: async (limit = 6) => {
-    const { data, error } = await supabase
-      .from('movimientos_kardex')
-      .select('*, productos(nombre, unidad_medida, categorias(nombre))')
-      .order('fecha', { ascending: false })
-      .limit(limit)
-    if (error) throw error
-    return data
+  getRecentMovements: async (sedeId, limit = 6) => {
+    try {
+      let query = supabase
+        .from('movimientos_kardex')
+        .select('*, sedes(nombre), productos(nombre, unidad_medida, categorias(nombre))')
+
+      if (sedeId) {
+        query = query.eq('sede_id', sedeId)
+      }
+
+      const { data, error } = await query
+        .order('fecha', { ascending: false })
+        .limit(limit)
+
+      if (error) {
+        console.error('Error in getRecentMovements:', error)
+        return []
+      }
+      return data || []
+    } catch (err) {
+      console.error('Catch error in getRecentMovements:', err)
+      return []
+    }
   },
 
-  getGlobalStats: async () => {
-    // Total de productos activos
-    const { count: totalProducts, error: err1 } = await supabase
-      .from('productos')
-      .select('*', { count: 'exact', head: true })
-      .eq('activo', true)
-      
-    // Total de categorías activas
-    const { count: totalCategories, error: err2 } = await supabase
-      .from('categorias')
-      .select('*', { count: 'exact', head: true })
+  getGlobalStats: async (sedeId) => {
+    try {
+      // 1. Total de productos activos en el catálogo maestro
+      const { count: totalProducts, error: err1 } = await supabase
+        .from('productos')
+        .select('*', { count: 'exact', head: true })
+        .eq('activo', true)
 
-    // Items con stock bajo activos (menor a 10)
-    const { count: lowStockItems, error: err3 } = await supabase
-      .from('productos')
-      .select('*', { count: 'exact', head: true })
-      .eq('activo', true)
-      .lt('stock_actual', 10)
+      if (err1) console.error('Error counting products:', err1)
+        
+      // 2. Total de categorías activas
+      const { count: totalCategories, error: err2 } = await supabase
+        .from('categorias')
+        .select('*', { count: 'exact', head: true })
 
-    if (err1 || err2 || err3) throw new Error('Error fetching stats')
+      if (err2) console.error('Error counting categories:', err2)
 
-    return { totalProducts, totalCategories, lowStockItems }
+      // 3. Items con stock bajo en stock_sedes
+      let queryLow = supabase
+        .from('stock_sedes')
+        .select('id, productos!inner(activo)', { count: 'exact', head: true })
+        .eq('productos.activo', true)
+        .lt('stock_actual', 10)
+
+      if (sedeId) {
+        queryLow = queryLow.eq('sede_id', sedeId)
+      }
+
+      const { count: lowStockItems, error: err3 } = await queryLow
+      if (err3) console.error('Error counting low stock items:', err3)
+
+      return { 
+        totalProducts: totalProducts || 0, 
+        totalCategories: totalCategories || 0, 
+        lowStockItems: lowStockItems || 0 
+      }
+    } catch (err) {
+      console.error('Catch error in getGlobalStats:', err)
+      return { totalProducts: 0, totalCategories: 0, lowStockItems: 0 }
+    }
   },
 
-  // Obtiene movimientos recientes para procesarlos en el frontend y armar la gráfica
-  getMovementsForChart: async () => {
-    const { data, error } = await supabase
-      .from('movimientos_kardex')
-      .select('fecha, tipo_movimiento, cantidad, productos(id, nombre, categoria_id, categorias(id, nombre, area_id, areas(nombre)))')
-      .order('fecha', { ascending: false })
-      .limit(500)
-    if (error) throw error
-    return data
+  getMovementsForChart: async (sedeId) => {
+    try {
+      let query = supabase
+        .from('movimientos_kardex')
+        .select('*, sedes(nombre), productos(id, nombre, categoria_id, categorias(id, nombre, area_id, areas(nombre)))')
+
+      if (sedeId) {
+        query = query.eq('sede_id', sedeId)
+      }
+
+      const { data, error } = await query
+        .order('fecha', { ascending: false })
+        .limit(500)
+
+      if (error) {
+        console.error('Error fetching chart movements:', error)
+        return []
+      }
+      return data || []
+    } catch (err) {
+      console.error('Catch error in getMovementsForChart:', err)
+      return []
+    }
   }
 }

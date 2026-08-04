@@ -5,13 +5,18 @@ import {
 } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
 import { catalogService } from '../../services/catalogService'
+import { useSede } from '../../context/SedeContext'
+import { useAuth } from '../../context/AuthContext'
 
 export function CatalogModule() {
   const location = useLocation()
+  const { activeSede } = useSede()
   const [areas, setAreas] = useState([])
   const [categories, setCategories] = useState([])
   const [products, setProducts] = useState([])
   const [isLoading, setIsLoading] = useState(true)
+  const { isAdmin } = useAuth()
+  const [showArchived, setShowArchived] = useState(false)
   
   // NAVEGACIÓN PRINCIPAL (4 Niveles)
   const [activeAreaId, setActiveAreaId] = useState(null)
@@ -44,7 +49,7 @@ export function CatalogModule() {
 
   useEffect(() => {
     fetchData()
-  }, [])
+  }, [activeSede?.id, showArchived])
 
   useEffect(() => {
     if (products.length > 0 && categories.length > 0 && areas.length > 0 && location.state) {
@@ -73,9 +78,10 @@ export function CatalogModule() {
       const results = await Promise.allSettled([
         catalogService.getAreas(),
         catalogService.getCategories(),
-        catalogService.getProducts()
+        catalogService.getProducts(activeSede?.id, showArchived)
       ])
       const [areasRes, catsRes, prodsRes] = results;
+
       
       console.log("Fetch Data Results:", results);
 
@@ -137,10 +143,10 @@ export function CatalogModule() {
   const currentLevel = activeProductId ? 'kardex' : activeCategoryId ? 'product' : activeAreaId ? 'category' : 'area'
   
   const levelTheme = {
-    area:     { accent: '#334155', accentLight: '#f1f5f9', accentBorder: '#cbd5e1', label: 'Áreas' },
-    category: { accent: '#4F46E5', accentLight: '#eef2ff', accentBorder: '#c7d2fe', label: 'Categorías' },
-    product:  { accent: '#0D9488', accentLight: '#f0fdfa', accentBorder: '#99f6e4', label: 'Productos' },
-    kardex:   { accent: '#1E293B', accentLight: '#f8fafc', accentBorder: '#e2e8f0', label: 'Kardex' }
+    area:     { accent: '#A16207', accentLight: '#fef3c7', accentBorder: '#fde68a', label: 'Áreas' },
+    category: { accent: '#A16207', accentLight: '#fef3c7', accentBorder: '#fde68a', label: 'Categorías' },
+    product:  { accent: '#A16207', accentLight: '#fef3c7', accentBorder: '#fde68a', label: 'Productos' },
+    kardex:   { accent: '#1F2937', accentLight: '#fcfaf5', accentBorder: '#e5e7eb', label: 'Kardex' }
   }
   const theme = levelTheme[currentLevel]
 
@@ -157,7 +163,7 @@ export function CatalogModule() {
   const handleOpenProduct = async (product) => {
     setActiveProductId(product.id); setActiveCategoryId(product.categoria_id); setViewState('MAIN')
     setIsLoadingMovements(true)
-    try { const history = await catalogService.getProductMovements(product.id); setMovements(history) }
+    try { const history = await catalogService.getProductMovements(product.id, activeSede?.id); setMovements(history) }
     catch (error) { console.error(error) }
     finally { setIsLoadingMovements(false) }
   }
@@ -167,12 +173,22 @@ export function CatalogModule() {
   const openTxModal = (type) => { setTxType(type); setTxAmount(''); setTxObs(''); setViewState('TX_MODAL') }
   const handleSaveTransaction = async () => {
     if (!txAmount || isNaN(txAmount) || Number(txAmount) <= 0) return alert('Cantidad inválida.')
+    if (!activeSede?.id) return alert('Debes seleccionar una sede activa.')
     setIsSubmitting(true)
     try {
-      await catalogService.registerMovement({ p_producto_id: activeProductId, p_tipo_movimiento: txType, p_cantidad: Number(txAmount), p_observaciones: txObs || null })
-      const [updatedProducts, newMovements] = await Promise.all([catalogService.getProducts(), catalogService.getProductMovements(activeProductId)])
+      await catalogService.registerMovement({ 
+        p_producto_id: activeProductId, 
+        p_sede_id: activeSede.id,
+        p_tipo_movimiento: txType, 
+        p_cantidad: Number(txAmount), 
+        p_observaciones: txObs || null 
+      })
+      const [updatedProducts, newMovements] = await Promise.all([
+        catalogService.getProducts(activeSede.id), 
+        catalogService.getProductMovements(activeProductId, activeSede.id)
+      ])
       setProducts(updatedProducts); setMovements(newMovements); cancelView()
-    } catch (error) { alert('Error registrando el movimiento.') }
+    } catch (error) { alert('Error registrando el movimiento: ' + (error.message || '')) }
     finally { setIsSubmitting(false) }
   }
 
@@ -232,11 +248,18 @@ export function CatalogModule() {
   const handleDelete = async () => {
     setIsSubmitting(true)
     try {
-      if (deleteType === 'PRODUCT') { await catalogService.deleteProduct(itemToDelete.id); if (activeProductId === itemToDelete.id) handleOpenCategory(activeCategoryId) }
+      if (deleteType === 'PRODUCT') { 
+        await catalogService.deleteProduct(itemToDelete.id, activeSede?.id, false); 
+        if (activeProductId === itemToDelete.id) handleOpenCategory(activeCategoryId) 
+      }
+      else if (deleteType === 'PRODUCT_RESTORE') { 
+        await catalogService.restoreProduct(itemToDelete.id, activeSede?.id, false); 
+        if (activeProductId === itemToDelete.id) handleOpenCategory(activeCategoryId) 
+      }
       else if (deleteType === 'CATEGORY') { await catalogService.deleteCategory(itemToDelete.id); if (activeCategoryId === itemToDelete.id) handleOpenArea(activeAreaId) }
       else if (deleteType === 'AREA') { await catalogService.deleteArea(itemToDelete.id); if (activeAreaId === itemToDelete.id) handleGoHome() }
       await fetchData(); cancelView()
-    } catch (error) { alert(error.message || 'Error al archivar el elemento.') } finally { setIsSubmitting(false) }
+    } catch (error) { alert(error.message || 'Error en la operación.') } finally { setIsSubmitting(false) }
   }
 
   // ==========================================
@@ -365,7 +388,7 @@ export function CatalogModule() {
         <div className="space-y-5">
           <div className="flex justify-between items-center">
             <div>
-              <h2 className="font-display text-2xl font-bold" style={{ color: levelTheme.area.accent }}>Áreas Principales</h2>
+              <h2 className="text-2xl font-bold text-[#1F2937]" style={{ color: levelTheme.area.accent }}>Áreas Principales</h2>
               <p className="text-sm text-slate-400 mt-1">Selecciona un área para ver sus categorías</p>
             </div>
             <button onClick={openCreateArea} className="flex items-center px-5 py-2.5 text-white rounded-xl font-bold shadow-md cursor-pointer hover:shadow-lg" style={{ backgroundColor: levelTheme.area.accent }}>
@@ -406,7 +429,7 @@ export function CatalogModule() {
         <div className="space-y-5 animate-slide-right">
           <div className="flex justify-between items-center">
             <div>
-              <h2 className="font-display text-2xl font-bold" style={{ color: levelTheme.category.accent }}>Categorías</h2>
+              <h2 className="text-2xl font-bold text-[#1F2937]" style={{ color: levelTheme.category.accent }}>Categorías</h2>
               <p className="text-sm text-slate-400 mt-1">en {activeAreaObj?.nombre}</p>
             </div>
             <button onClick={openCreateCategory} className="flex items-center px-5 py-2.5 text-white rounded-xl font-bold shadow-md cursor-pointer hover:shadow-lg" style={{ backgroundColor: levelTheme.category.accent }}>
@@ -447,12 +470,19 @@ export function CatalogModule() {
         <div className="space-y-5 animate-slide-right">
           <div className="flex justify-between items-center">
             <div>
-              <h2 className="font-display text-2xl font-bold" style={{ color: levelTheme.product.accent }}>Productos</h2>
+              <h2 className="text-2xl font-bold text-[#1F2937]" style={{ color: levelTheme.product.accent }}>Productos</h2>
               <p className="text-sm text-slate-400 mt-1">en {activeCategoryObj?.nombre}</p>
             </div>
-            <button onClick={openCreateProduct} className="flex items-center px-5 py-2.5 text-white rounded-xl font-bold shadow-md cursor-pointer hover:shadow-lg" style={{ backgroundColor: levelTheme.product.accent }}>
-              <Plus size={18} className="mr-2"/> Nuevo Producto
-            </button>
+            <div className="flex space-x-2">
+              {isAdmin && (
+                <button onClick={() => setShowArchived(!showArchived)} className={`flex items-center px-4 py-2 rounded-xl font-bold border cursor-pointer transition-colors ${showArchived ? 'bg-orange-100 text-orange-700 border-orange-200' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`}>
+                  <Archive size={16} className="mr-2"/> {showArchived ? 'Ocultar Archivados' : 'Ver Archivados'}
+                </button>
+              )}
+              <button onClick={openCreateProduct} className="flex items-center px-5 py-2.5 text-white rounded-xl font-bold shadow-md cursor-pointer hover:shadow-lg" style={{ backgroundColor: levelTheme.product.accent }}>
+                <Plus size={18} className="mr-2"/> Nuevo Producto
+              </button>
+            </div>
           </div>
           
           <div className="bg-white p-3 rounded-2xl card-soft border border-slate-100 relative">
@@ -462,10 +492,13 @@ export function CatalogModule() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 stagger-children">
             {filteredProducts.map(product => (
-              <div key={product.id} onClick={() => handleOpenProduct(product)} className="bg-white p-5 rounded-2xl card-soft border flex justify-between items-center cursor-pointer group relative overflow-hidden" style={{ borderColor: levelTheme.product.accentBorder + '60' }}>
-                <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl" style={{ backgroundColor: levelTheme.product.accent }}></div>
+              <div key={product.id} onClick={() => handleOpenProduct(product)} className={`bg-white p-5 rounded-2xl card-soft border flex justify-between items-center cursor-pointer group relative overflow-hidden ${product.sede_activo === false || product.activo === false ? 'opacity-60 grayscale' : ''}`} style={{ borderColor: levelTheme.product.accentBorder + '60' }}>
+                <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl ${product.sede_activo === false || product.activo === false ? 'bg-slate-300' : ''}`} style={{ backgroundColor: product.sede_activo === false || product.activo === false ? undefined : levelTheme.product.accent }}></div>
                 <div className="pl-3">
-                  <h3 className="text-base font-bold text-slate-800 group-hover:text-teal-600 transition-colors">{product.nombre}</h3>
+                  <h3 className="text-base font-bold text-slate-800 group-hover:text-teal-600 transition-colors">
+                    {product.nombre}
+                    {(product.sede_activo === false || product.activo === false) && <span className="ml-2 text-[10px] bg-red-100 text-red-700 px-2 py-0.5 rounded uppercase font-bold tracking-wider">Archivado</span>}
+                  </h3>
                   <p className="text-slate-400 text-sm mt-0.5">{product.unidad_medida}</p>
                 </div>
                 <div className="text-right">
@@ -483,16 +516,20 @@ export function CatalogModule() {
       {activeProductId && activeProductObj && (
         <div className="space-y-6 animate-slide-right">
           <div className="bg-white rounded-2xl card-soft border border-slate-100 overflow-hidden">
-            {/* Header with colored top bar */}
-            <div className="h-1.5 w-full" style={{ background: `linear-gradient(90deg, ${levelTheme.product.accent}, ${levelTheme.category.accent})` }}></div>
+            {/* Header with subtle #A16207 -> #9A3412 bar */}
+            <div className="h-1.5 w-full bg-gradient-to-r from-[#A16207] to-[#9A3412]"></div>
             <div className="p-6 border-b border-slate-100 flex justify-between items-center">
               <div>
-                <h2 className="font-display text-2xl font-black text-slate-900">{activeProductObj.nombre}</h2>
+                <h2 className="text-2xl font-black text-[#1F2937]">{activeProductObj.nombre}</h2>
                 <p className="text-slate-400 font-medium flex items-center mt-1 text-sm"><Package size={14} className="mr-1.5" style={{ color: levelTheme.product.accent }} /> SKU: {activeProductObj.unidad_medida}</p>
               </div>
               <div className="flex space-x-2">
                 <button onClick={(e) => openEditProduct(e, activeProductObj)} className="flex items-center px-4 py-2 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl font-medium text-sm cursor-pointer"><Settings size={16} className="mr-2" /> Configurar</button>
-                <button onClick={(e) => confirmDelete(e, activeProductObj, 'PRODUCT')} className="flex items-center px-4 py-2 text-orange-600 bg-orange-50 hover:bg-orange-100 rounded-xl font-medium text-sm cursor-pointer"><Archive size={16} className="mr-2" /> Archivar</button>
+                {(activeProductObj.sede_activo === false || activeProductObj.activo === false) ? (
+                  <button onClick={(e) => confirmDelete(e, activeProductObj, 'PRODUCT_RESTORE')} className="flex items-center px-4 py-2 text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-xl font-medium text-sm cursor-pointer"><Archive size={16} className="mr-2" /> Restaurar</button>
+                ) : (
+                  <button onClick={(e) => confirmDelete(e, activeProductObj, 'PRODUCT')} className="flex items-center px-4 py-2 text-orange-600 bg-orange-50 hover:bg-orange-100 rounded-xl font-medium text-sm cursor-pointer"><Archive size={16} className="mr-2" /> Archivar</button>
+                )}
               </div>
             </div>
 
@@ -565,23 +602,27 @@ export function CatalogModule() {
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 text-center animate-fade-in-up">
             {deleteType === 'PRODUCT' ? (
               <Archive className="text-orange-500 w-12 h-12 mx-auto mb-4 bg-orange-100 p-2.5 rounded-2xl" />
+            ) : deleteType === 'PRODUCT_RESTORE' ? (
+              <Archive className="text-emerald-500 w-12 h-12 mx-auto mb-4 bg-emerald-100 p-2.5 rounded-2xl" />
             ) : (
               <Trash2 className="text-red-500 w-12 h-12 mx-auto mb-4 bg-red-100 p-2.5 rounded-2xl" />
             )}
             <h3 className="text-xl font-bold text-slate-900">
-              ¿{deleteType === 'PRODUCT' ? 'Archivar Producto' : `Eliminar ${deleteType === 'AREA' ? 'Área' : 'Categoría'}`}?
+              {deleteType === 'PRODUCT' ? 'Archivar Producto' : deleteType === 'PRODUCT_RESTORE' ? 'Restaurar Producto' : `Eliminar ${deleteType === 'AREA' ? 'Área' : 'Categoría'}`}?
             </h3>
             <p className="text-slate-400 text-sm mt-2 mb-6">
               {deleteType === 'PRODUCT' ? (
-                <><strong className="text-slate-600">{itemToDelete.nombre}</strong> se ocultará del inventario pero conservará su historial.</>
+                <><strong className="text-slate-600">{itemToDelete.nombre}</strong> se ocultará del inventario de tu sede pero conservará su historial.</>
+              ) : deleteType === 'PRODUCT_RESTORE' ? (
+                <><strong className="text-slate-600">{itemToDelete.nombre}</strong> volverá a estar visible y disponible en tu sede.</>
               ) : (
                 <><strong className="text-slate-600">{itemToDelete.nombre}</strong> se eliminará permanentemente de la base de datos.</>
               )}
             </p>
             <div className="flex gap-3">
               <button onClick={cancelView} disabled={isSubmitting} className="flex-1 px-4 py-3 border border-slate-200 rounded-xl hover:bg-slate-50 font-medium cursor-pointer">Cancelar</button>
-              <button onClick={handleDelete} disabled={isSubmitting} className={`flex-1 px-4 py-3 text-white rounded-xl font-bold flex justify-center cursor-pointer ${deleteType === 'PRODUCT' ? 'bg-orange-500 hover:bg-orange-600' : 'bg-red-500 hover:bg-red-600'}`}>
-                {isSubmitting ? <Loader2 className="animate-spin" /> : (deleteType === 'PRODUCT' ? 'Archivar' : 'Eliminar')}
+              <button onClick={handleDelete} disabled={isSubmitting} className={`flex-1 px-4 py-3 text-white rounded-xl font-bold flex justify-center cursor-pointer ${deleteType === 'PRODUCT' ? 'bg-orange-500 hover:bg-orange-600' : deleteType === 'PRODUCT_RESTORE' ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-red-500 hover:bg-red-600'}`}>
+                {isSubmitting ? <Loader2 className="animate-spin" /> : (deleteType === 'PRODUCT' ? 'Archivar' : deleteType === 'PRODUCT_RESTORE' ? 'Restaurar' : 'Eliminar')}
               </button>
             </div>
           </div>

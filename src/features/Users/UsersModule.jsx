@@ -1,22 +1,45 @@
 import React, { useState, useEffect } from 'react'
 import { userService } from '../../services/userService'
-import { Users, Shield, Loader2, AlertCircle, CheckCircle2, UserCheck, UserX } from 'lucide-react'
+import { cajaService } from '../../services/cajaService'
+import { Users, Shield, Loader2, AlertCircle, Building2, MapPin } from 'lucide-react'
 import { useToast } from '../../context/ToastContext'
 
 export function UsersModule() {
   const [users, setUsers] = useState([])
+  const [availableSedes, setAvailableSedes] = useState([])
+  const [userSedesMap, setUserSedesMap] = useState({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const toast = useToast()
 
   useEffect(() => {
-    loadUsers()
+    loadUsersAndSedes()
   }, [])
 
-  const loadUsers = async () => {
+  const loadUsersAndSedes = async () => {
     try {
-      const data = await userService.getAllUsers()
-      setUsers(data)
+      const [usersData, sedesData] = await Promise.all([
+        userService.getAllUsers(),
+        cajaService.getSedes().catch(() => [])
+      ])
+      
+      setUsers(usersData)
+      setAvailableSedes(sedesData)
+
+      // Cargar las sedes de cada usuario
+      const sedesMap = {}
+      await Promise.all(
+        usersData.map(async (u) => {
+          try {
+            const userSedes = await userService.getSedesDelUsuario(u.id)
+            sedesMap[u.id] = userSedes.map(s => s.id)
+          } catch (e) {
+            sedesMap[u.id] = []
+          }
+        })
+      )
+      setUserSedesMap(sedesMap)
+
     } catch (err) {
       setError('Error al cargar usuarios. Asegúrate de que las tablas existan en BD.')
     } finally {
@@ -45,7 +68,7 @@ export function UsersModule() {
       toast.success(`Roles actualizados correctamente.`)
     } catch (err) {
       toast.error("Error actualizando roles")
-      loadUsers()
+      loadUsersAndSedes()
     }
   }
 
@@ -58,7 +81,30 @@ export function UsersModule() {
       toast.info(`Usuario "${userName || 'Personal'}" ${newStatus ? 'reactivado' : 'desactivado'}.`)
     } catch (err) {
       toast.error("Error actualizando estado del usuario")
-      loadUsers()
+      loadUsersAndSedes()
+    }
+  }
+
+  const handleSedeToggle = async (userId, sedeId) => {
+    const currentSedeIds = userSedesMap[userId] || []
+    const isAssigned = currentSedeIds.includes(sedeId)
+
+    try {
+      let updatedSedeIds = []
+      if (isAssigned) {
+        updatedSedeIds = currentSedeIds.filter(id => id !== sedeId)
+        setUserSedesMap({ ...userSedesMap, [userId]: updatedSedeIds })
+        await userService.removerSede(userId, sedeId)
+        toast.info("Sede desasignada del usuario")
+      } else {
+        updatedSedeIds = [...currentSedeIds, sedeId]
+        setUserSedesMap({ ...userSedesMap, [userId]: updatedSedeIds })
+        await userService.asignarSede(userId, sedeId)
+        toast.success("Sede asignada correctamente")
+      }
+    } catch (err) {
+      toast.error("Error al modificar asignación de sede")
+      loadUsersAndSedes()
     }
   }
 
@@ -74,8 +120,8 @@ export function UsersModule() {
   return (
     <div className="space-y-6 animate-fade-in-up pb-8">
       <div>
-        <h2 className="font-display text-2xl font-bold text-slate-900">Gestión de Personal</h2>
-        <p className="text-slate-500 text-sm mt-0.5">Administra los accesos y roles del equipo de trabajo</p>
+        <h2 className="text-2xl font-bold text-[#1F2937]">Gestión de Personal</h2>
+        <p className="text-[#6B7280] text-sm mt-0.5">Administra los accesos, roles y sedes permitidas del equipo de trabajo</p>
       </div>
 
       {error && (
@@ -146,6 +192,32 @@ export function UsersModule() {
                   ))}
                 </div>
               </div>
+
+              {/* Sedes Mobile */}
+              <div className="border-t border-slate-100 pt-2.5">
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+                  <MapPin size={12} className="text-amber-700" /> Sedes Asignadas
+                </p>
+                <div className="flex flex-wrap gap-2 text-xs font-bold">
+                  {availableSedes.map(sede => {
+                    const isAssigned = (userSedesMap[user.id] || []).includes(sede.id)
+                    return (
+                      <button
+                        key={sede.id}
+                        disabled={!user.activo}
+                        onClick={() => handleSedeToggle(user.id, sede.id)}
+                        className={`px-3 py-1 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
+                          isAssigned 
+                            ? 'bg-amber-100 text-amber-900 border-amber-300' 
+                            : 'bg-slate-50 text-slate-400 border-slate-200 hover:bg-slate-100'
+                        }`}
+                      >
+                        {sede.nombre} {isAssigned ? '✓' : '+'}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
             </div>
           ))}
         </div>
@@ -158,6 +230,7 @@ export function UsersModule() {
                 <th className="p-4 font-bold">Estado</th>
                 <th className="p-4 font-bold">Nombre Completo</th>
                 <th className="p-4 font-bold">Roles Actuales</th>
+                <th className="p-4 font-bold">Sedes Permitidas</th>
                 <th className="p-4 font-bold text-right">Asignación de Roles</th>
               </tr>
             </thead>
@@ -193,6 +266,29 @@ export function UsersModule() {
                       ))}
                     </div>
                   </td>
+                  <td className="p-4">
+                    <div className="flex flex-wrap gap-1.5">
+                      {availableSedes.map(sede => {
+                        const isAssigned = (userSedesMap[user.id] || []).includes(sede.id)
+                        return (
+                          <button
+                            key={sede.id}
+                            disabled={!user.activo}
+                            onClick={() => handleSedeToggle(user.id, sede.id)}
+                            className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border cursor-pointer ${
+                              isAssigned 
+                                ? 'bg-amber-100 text-amber-900 border-amber-300 shadow-sm' 
+                                : 'bg-slate-50 text-slate-400 border-slate-200 hover:bg-slate-100'
+                            }`}
+                            title={isAssigned ? "Desasignar esta sede" : "Asignar esta sede"}
+                          >
+                            <Building2 size={10} className="inline mr-1" />
+                            {sede.nombre} {isAssigned ? '✓' : '+'}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </td>
                   <td className="p-4 text-right">
                     <div className="flex flex-wrap justify-end gap-3 text-xs font-bold text-slate-600">
                       {['ADMIN', 'MESERO', 'ALMACEN', 'PENDIENTE'].map(role => (
@@ -213,7 +309,7 @@ export function UsersModule() {
               ))}
               {users.length === 0 && !error && (
                 <tr>
-                  <td colSpan="4" className="p-8 text-center text-slate-400 text-sm">
+                  <td colSpan="5" className="p-8 text-center text-slate-400 text-sm">
                     No hay usuarios registrados en el sistema.
                   </td>
                 </tr>

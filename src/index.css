@@ -2,27 +2,23 @@
 
 /* ==============================
    DESIGN SYSTEM — MMJRest (Mama Julia)
-   Skill: ui-ux-pro-max
-   Style: Nature Distilled / Warm Peruvian Gastronomy
-   Palette: Mostaza Oscuro (#A16207), Marrón Terracota (#9A3412), Crema (#FFFBEB)
-   Typography: Playfair Display SC + Karla
+   Identity: ERP Gastronómico Premium
+   Palette: Mostaza (#A16207), Café Oscuro (#221C17), Fondo Neutro (#FAF7F2)
    ============================== */
 
 :root {
-  /* Palette Peruana */
-  --color-primary: #A16207;       /* Mostaza Oscuro / Dorado Cálido */
-  --color-secondary: #9A3412;     /* Marrón Anaranjado / Terracota */
-  --color-background: #FFFBEB;    /* Crema Muy Claro */
-  --color-foreground: #1F2937;    /* Gris Oscuro Neutro para Texto */
-  --color-muted: #F3F4F6;         /* Gris Suave */
-  --color-border: #E5E7EB;        /* Borde Neutro */
-  --color-text-muted: #6B7280;    /* Texto Secundario */
-
-  /* System Level Colors */
-  --level-area: #78350F;
-  --level-category: #9A3412;
-  --level-product: #A16207;
-  --level-kardex: #1C1917;
+  /* Paleta Unificada */
+  --color-background: #FAF7F2;    /* Fondo Neutro Cálido */
+  --color-card: #FFFFFF;          /* Tarjetas Blancas */
+  --color-sidebar: #221C17;       /* Sidebar Café Oscuro Gastronómico */
+  --color-primary: #A16207;       /* Mostaza (Marca, Botones, Acentos) */
+  --color-hover: #9A3412;         /* Terracota (Hover y Acciones Secundarias) */
+  --color-success: #16A34A;       /* Verde Éxito / Ingresos */
+  --color-error: #DC2626;         /* Rojo Error / Egresos */
+  --color-info: #2563EB;          /* Azul Información */
+  --color-foreground: #1F2937;    /* Texto Principal */
+  --color-text-secondary: #6B7280;/* Texto Secundario */
+  --color-border: #E5E7EB;        /* Bordes */
 }
 
 /* Base */
@@ -33,10 +29,10 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--color-background);
   color: var(--color-foreground);
-  touch-action: manipulation; /* Touch optimization (eliminates 300ms tap delay) */
+  touch-action: manipulation;
 }
 
-/* Display Font */
+/* Display Font (RESERVADO ÚNICAMENTE PARA EL LOGO "MAMA JULIA") */
 .font-display {
   font-family: 'Playfair Display SC', Georgia, serif;
 }
@@ -48,7 +44,6 @@ body {
   transition-duration: 200ms;
 }
 
-/* Override for elements that shouldn't auto-transition */
 input, textarea, select, button, a, [class*="animate-"] {
   transition-duration: 0ms;
 }
@@ -58,67 +53,42 @@ button, a, select {
 
 /* Custom Animations */
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
-@keyframes float {
-  0% { transform: translate(0, 0) scale(1); opacity: 0.25; }
-  33% { transform: translate(40px, -60px) scale(1.1); opacity: 0.5; }
-  66% { transform: translate(-25px, 35px) scale(0.9); opacity: 0.35; }
-  100% { transform: translate(0, 0) scale(1); opacity: 0.25; }
-}
-@keyframes floatReverse {
-  0% { transform: translate(0, 0) scale(1); opacity: 0.25; }
-  33% { transform: translate(-40px, 60px) scale(0.9); opacity: 0.35; }
-  66% { transform: translate(25px, -35px) scale(1.1); opacity: 0.5; }
-  100% { transform: translate(0, 0) scale(1); opacity: 0.25; }
-}
-@keyframes slideInRight {
-  from { opacity: 0; transform: translateX(20px); }
-  to { opacity: 1; transform: translateX(0); }
-}
 
 .animate-fade-in-up {
-  animation: fadeInUp 0.35s ease-out both;
+  animation: fadeInUp 0.3s ease-out both;
 }
 .animate-fade-in {
-  animation: fadeIn 0.3s ease-out both;
-}
-.animate-float {
-  animation: float 16s ease-in-out infinite;
-}
-.animate-float-reverse {
-  animation: floatReverse 19s ease-in-out infinite;
-}
-.animate-slide-right {
-  animation: slideInRight 0.3s ease-out both;
+  animation: fadeIn 0.25s ease-out both;
 }
 
 /* Stagger children animation */
 .stagger-children > * {
-  animation: fadeInUp 0.35s ease-out both;
+  animation: fadeInUp 0.3s ease-out both;
 }
 .stagger-children > *:nth-child(1) { animation-delay: 0ms; }
-.stagger-children > *:nth-child(2) { animation-delay: 60ms; }
-.stagger-children > *:nth-child(3) { animation-delay: 120ms; }
-.stagger-children > *:nth-child(4) { animation-delay: 180ms; }
-.stagger-children > *:nth-child(5) { animation-delay: 240ms; }
-.stagger-children > *:nth-child(6) { animation-delay: 300ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 50ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 100ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 150ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 200ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 250ms; }
 
-/* Soft UI warm card shadows */
+/* ERP Clean Card Shadows */
 .card-soft {
   box-shadow: 
-    0 4px 20px -2px rgba(161, 98, 7, 0.06),
-    0 2px 6px -1px rgba(0, 0, 0, 0.03);
+    0 1px 3px 0 rgba(0, 0, 0, 0.04),
+    0 1px 2px -1px rgba(0, 0, 0, 0.03);
 }
 .card-soft:hover {
   box-shadow: 
-    0 10px 25px -4px rgba(161, 98, 7, 0.1),
-    0 4px 10px -2px rgba(0, 0, 0, 0.04);
+    0 4px 12px -2px rgba(34, 28, 23, 0.06),
+    0 2px 4px -1px rgba(0, 0, 0, 0.03);
 }
 
 /* Accessibility: prefers-reduced-motion */

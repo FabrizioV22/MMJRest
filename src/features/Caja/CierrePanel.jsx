@@ -1,54 +1,42 @@
 import React from 'react'
-import { ShieldCheck, Banknote, Edit2, Check, X, CheckCircle, AlertTriangle } from 'lucide-react'
+import { ShieldCheck, Banknote, Edit2, Check, X, CheckCircle, AlertTriangle, Info } from 'lucide-react'
 
 const fmt = (n) => Number(n).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 /**
- * Columna oscura de consolidado y cierre de caja.
+ * Columna oscura de consolidado y cierre de caja (#1F2937).
  */
 export function CierrePanel({
   turno, isAdmin,
   totalEfectivo, totalDigitales, totalGastos, totalPropinas, totalIngresosExtra,
-  ventasPOS, montoEsperado, diferencia,
+  ventasPOS, ventasEfectivo, montoEsperado, diferencia,
   editandoFondo, setEditandoFondo, nuevoFondo, setNuevoFondo,
   onGuardarFondo, onCerrarCaja,
 }) {
   const diff = diferencia
-  const diffColor = diff === 0 ? 'emerald' : diff > 0 ? 'blue' : 'red'
-
-  const diffBgMap = {
-    emerald: 'bg-emerald-500/10 border-emerald-500/20',
-    blue: 'bg-blue-500/10 border-blue-500/20',
-    red: 'bg-red-500/10 border-red-500/20',
-  }
-  const diffTextMap = {
-    emerald: 'text-emerald-400',
-    blue: 'text-blue-400',
-    red: 'text-red-400',
-  }
+  const isOk = diff === 0
+  const isPositive = diff > 0
 
   return (
-    <div className="lg:col-span-4 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white rounded-2xl card-soft flex flex-col relative overflow-hidden">
-      {/* Decorative blurs */}
-      <div className="absolute -top-20 -right-20 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-16 -left-16 w-56 h-56 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
-
+    <div style={{ backgroundColor: '#1F2937' }} className="lg:col-span-4 text-white rounded-2xl card-soft flex flex-col relative overflow-hidden border border-slate-700/60">
       <div className="relative z-10 flex flex-col h-full">
         {/* Header */}
-        <div className="px-5 py-4 border-b border-white/10 flex items-center space-x-2.5">
-          <div className="w-8 h-8 bg-white/10 text-emerald-400 rounded-lg flex items-center justify-center">
-            <ShieldCheck size={16} strokeWidth={2} />
-          </div>
-          <div>
-            <h3 className="font-bold text-white text-sm">Cierre de Caja</h3>
-            <p className="text-[10px] text-slate-400">Consolidado de operaciones</p>
+        <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between">
+          <div className="flex items-center space-x-2.5">
+            <div className="w-8 h-8 bg-white/10 text-emerald-400 rounded-lg flex items-center justify-center">
+              <ShieldCheck size={16} strokeWidth={2} />
+            </div>
+            <div>
+              <h3 className="font-bold text-white text-sm">Cierre de Caja</h3>
+              <p className="text-[10px] text-slate-400">Consolidado de operaciones</p>
+            </div>
           </div>
         </div>
 
         {/* Breakdown */}
         <div className="flex-1 px-5 py-4 space-y-2.5">
           {/* Fondo Inicial */}
-          <SummaryRow label="Fondo Inicial">
+          <SummaryRow label="Fondo Inicial (Incluido en POS)">
             {editandoFondo ? (
               <div className="flex items-center space-x-1">
                 <input
@@ -57,33 +45,41 @@ export function CierrePanel({
                   value={nuevoFondo} onChange={e => setNuevoFondo(e.target.value)}
                   className="w-20 py-1 px-2 bg-white text-slate-900 rounded-lg font-bold text-xs outline-none"
                 />
-                <button onClick={onGuardarFondo} aria-label="Guardar fondo" className="p-1 hover:bg-emerald-500/20 rounded text-emerald-400 cursor-pointer"><Check size={14} /></button>
-                <button onClick={() => setEditandoFondo(false)} aria-label="Cancelar" className="p-1 hover:bg-red-500/20 rounded text-red-400 cursor-pointer"><X size={14} /></button>
+                <button onClick={onGuardarFondo} aria-label="Guardar fondo" title="Guardar" className="p-1 hover:bg-emerald-500/20 rounded text-[#16A34A] cursor-pointer"><Check size={14} /></button>
+                <button onClick={() => setEditandoFondo(false)} aria-label="Cancelar" title="Cancelar" className="p-1 hover:bg-red-500/20 rounded text-[#DC2626] cursor-pointer"><X size={14} /></button>
               </div>
             ) : (
               <div className="flex items-center space-x-2">
-                <span className="text-sm font-bold tabular-nums">S/ {fmt(turno.monto_apertura)}</span>
-                <button onClick={() => { setNuevoFondo(turno.monto_apertura); setEditandoFondo(true) }} aria-label="Editar fondo" className="text-slate-500 hover:text-white cursor-pointer">
+                <span className="text-sm font-bold tabular-nums text-amber-300">S/ {fmt(turno.monto_apertura)}</span>
+                <button onClick={() => { setNuevoFondo(turno.monto_apertura); setEditandoFondo(true) }} aria-label="Editar fondo" title="Editar" className="text-slate-400 hover:text-white cursor-pointer">
                   <Edit2 size={11} />
                 </button>
               </div>
             )}
           </SummaryRow>
 
-          <SummaryRow label="Ventas (POS)">
-            <span className="text-sm font-bold tabular-nums text-slate-300">S/ {fmt(ventasPOS || 0)}</span>
+          <SummaryRow label="Ventas POS (Total)">
+            <span className="text-sm font-bold tabular-nums text-slate-200">S/ {fmt(ventasPOS || 0)}</span>
           </SummaryRow>
 
-          <SummaryRow label="Flujos Digitales">
+          <SummaryRow label="Pagos Digitales">
             <span className="text-sm font-bold tabular-nums text-blue-400">− S/ {fmt(totalDigitales)}</span>
           </SummaryRow>
 
+          <div className="py-1 px-2.5 bg-white/5 rounded-lg border border-white/5 flex justify-between items-center text-xs">
+            <span className="text-slate-300 font-medium flex items-center gap-1">
+              <Info size={12} className="text-amber-400" />
+              <span>Efectivo de POS</span>
+            </span>
+            <span className="font-bold tabular-nums text-amber-200">S/ {fmt(ventasEfectivo || 0)}</span>
+          </div>
+
           <SummaryRow label="Gastos / Propinas">
-            <span className="text-sm font-bold tabular-nums text-red-400">− S/ {fmt(totalGastos + totalPropinas)}</span>
+            <span className="text-sm font-bold tabular-nums text-[#DC2626]">− S/ {fmt(totalGastos + totalPropinas)}</span>
           </SummaryRow>
 
           <SummaryRow label="Ingresos Extras" border>
-            <span className="text-sm font-bold tabular-nums text-emerald-400">+ S/ {fmt(totalIngresosExtra)}</span>
+            <span className="text-sm font-bold tabular-nums text-[#16A34A]">+ S/ {fmt(totalIngresosExtra)}</span>
           </SummaryRow>
 
           {/* Esperado */}
@@ -94,37 +90,43 @@ export function CierrePanel({
 
           {/* Efectivo Físico */}
           <div className="bg-white/5 p-3 rounded-xl flex justify-between items-center border border-emerald-500/20 mt-1">
-            <span className="text-sm font-bold text-emerald-400 flex items-center space-x-1.5">
+            <span className="text-sm font-bold text-[#16A34A] flex items-center space-x-1.5">
               <Banknote size={14} />
               <span>Efectivo Físico</span>
             </span>
-            <span className="text-xl font-black text-emerald-400 tabular-nums">S/ {fmt(totalEfectivo)}</span>
+            <span className="text-xl font-black text-[#16A34A] tabular-nums">S/ {fmt(totalEfectivo)}</span>
           </div>
         </div>
 
         {/* Cuadre + Botón */}
         <div className="px-5 pb-5 space-y-4">
           {isAdmin ? (
-            <div className={`p-4 rounded-xl border text-center ${diffBgMap[diffColor]}`}>
+            <div className={`p-4 rounded-xl border text-center ${
+              isOk ? 'bg-emerald-500/10 border-emerald-500/20 text-[#16A34A]' :
+              isPositive ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' :
+              'bg-rose-500/10 border-rose-500/20 text-[#DC2626]'
+            }`}>
               <p className="text-[10px] text-slate-400 uppercase tracking-widest mb-1 font-bold">Cuadre (Diferencia)</p>
-              <p className={`text-3xl font-black tabular-nums ${diffTextMap[diffColor]}`}>
+              <p className="text-3xl font-black tabular-nums">
                 {diff > 0 ? '+' : ''}{fmt(diff)}
               </p>
-              <p className={`text-[10px] mt-1 font-medium ${diffTextMap[diffColor]} opacity-70`}>
-                {diff === 0 ? '✓ Caja cuadrada' : diff > 0 ? 'Sobrante detectado' : 'Faltante detectado'}
+              <p className="text-[10px] mt-1 font-medium opacity-80">
+                {isOk ? '✓ Caja cuadrada' : isPositive ? 'Sobrante detectado' : 'Faltante detectado'}
               </p>
             </div>
           ) : (
             <div className="bg-white/5 p-4 rounded-xl border border-white/10 flex flex-col items-center justify-center text-center space-y-2">
-              <AlertTriangle size={20} className="text-slate-500" />
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Cuadre Ciego Activo</p>
-              <p className="text-[10px] text-slate-500">La diferencia se registra internamente.</p>
+              <AlertTriangle size={20} className="text-slate-400" />
+              <p className="text-[10px] text-slate-300 font-bold uppercase tracking-widest">Cuadre Ciego Activo</p>
+              <p className="text-[10px] text-slate-400">La diferencia se registra internamente.</p>
             </div>
           )}
 
+          {/* Botón Confirmar */}
           <button
             onClick={onCerrarCaja}
-            className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] text-white rounded-xl font-bold text-base shadow-lg shadow-emerald-500/20 flex items-center justify-center space-x-2.5 cursor-pointer"
+            style={{ backgroundColor: '#16A34A' }}
+            className="w-full py-4 hover:bg-[#15803D] active:scale-[0.98] text-white rounded-xl font-bold text-base shadow-lg flex items-center justify-center space-x-2.5 cursor-pointer transition-all"
           >
             <CheckCircle size={20} />
             <span>Confirmar Cierre</span>
@@ -135,7 +137,6 @@ export function CierrePanel({
   )
 }
 
-/** Fila reutilizable del resumen financiero */
 function SummaryRow({ label, children, border }) {
   return (
     <div className={`flex justify-between items-center ${border ? 'pb-3 border-b border-white/10' : ''}`}>

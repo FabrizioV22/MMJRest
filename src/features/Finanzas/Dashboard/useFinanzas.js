@@ -1,16 +1,25 @@
 import { useState, useEffect, useMemo } from 'react'
 import { finanzasService } from '../../../services/finanzasService'
 import { cajaService } from '../../../services/cajaService'
+import { useSede } from '../../../context/SedeContext'
 
 export function useFinanzas() {
+  const { activeSede } = useSede()
   const [loading, setLoading] = useState(true)
   const [turnos, setTurnos] = useState([])
   const [movimientos, setMovimientos] = useState([])
   
   // Filtros
   const [dateRange, setDateRange] = useState({ start: '', end: '' })
-  const [filterSede, setFilterSede] = useState('ALL')
+  const [filterSede, setFilterSede] = useState(activeSede?.id || 'ALL')
   const [sedesDisponibles, setSedesDisponibles] = useState([])
+
+  // Sincronizar filterSede cuando cambia la sede activa global (del sidebar)
+  useEffect(() => {
+    if (activeSede?.id) {
+      setFilterSede(activeSede.id)
+    }
+  }, [activeSede])
 
   useEffect(() => {
     // Load sedes
