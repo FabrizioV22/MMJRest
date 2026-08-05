@@ -10,6 +10,7 @@ export function UsersModule() {
   const [userSedesMap, setUserSedesMap] = useState({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [selectedSedeFilter, setSelectedSedeFilter] = useState('ALL')
   const toast = useToast()
 
   useEffect(() => {
@@ -119,9 +120,38 @@ export function UsersModule() {
 
   return (
     <div className="space-y-6 animate-fade-in-up pb-8">
-      <div>
-        <h2 className="text-2xl font-bold text-[#1F2937]">Gestión de Personal</h2>
-        <p className="text-[#6B7280] text-sm mt-0.5">Administra los accesos, roles y sedes permitidas del equipo de trabajo</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-[#1F2937]">Gestión de Personal</h2>
+          <p className="text-[#6B7280] text-sm mt-0.5">Administra los accesos, roles y sedes permitidas del equipo de trabajo</p>
+        </div>
+        
+        {/* Filtro por Sede */}
+        <div className="flex w-full md:w-auto bg-white rounded-xl shadow-sm border border-slate-200 p-1 overflow-x-auto">
+          <button
+            onClick={() => setSelectedSedeFilter('ALL')}
+            className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap text-center ${
+              selectedSedeFilter === 'ALL'
+                ? 'bg-amber-100 text-amber-900'
+                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+            }`}
+          >
+            Todas
+          </button>
+          {availableSedes.map(sede => (
+            <button
+              key={sede.id}
+              onClick={() => setSelectedSedeFilter(sede.id)}
+              className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap text-center ${
+                selectedSedeFilter === sede.id
+                  ? 'bg-amber-100 text-amber-900'
+                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              {sede.nombre}
+            </button>
+          ))}
+        </div>
       </div>
 
       {error && (
@@ -137,12 +167,14 @@ export function UsersModule() {
             <Users className="text-amber-700" size={18} />
             <h3 className="font-bold text-slate-800 text-sm">Cuentas Registradas</h3>
           </div>
-          <span className="text-xs font-bold text-slate-400">{users.length} usuarios</span>
+          <span className="text-xs font-bold text-slate-400">
+            {users.filter(u => selectedSedeFilter === 'ALL' || (userSedesMap[u.id] || []).includes(selectedSedeFilter)).length} usuarios
+          </span>
         </div>
 
         {/* Mobile View: Cards */}
         <div className="md:hidden divide-y divide-slate-100">
-          {users.map(user => (
+          {users.filter(u => selectedSedeFilter === 'ALL' || (userSedesMap[u.id] || []).includes(selectedSedeFilter)).map(user => (
             <div key={user.id} className={`p-4 space-y-3 ${!user.activo ? 'bg-slate-50/70 opacity-60' : ''}`}>
               <div className="flex justify-between items-start">
                 <div>
@@ -235,7 +267,7 @@ export function UsersModule() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
-              {users.map(user => (
+              {users.filter(u => selectedSedeFilter === 'ALL' || (userSedesMap[u.id] || []).includes(selectedSedeFilter)).map(user => (
                 <tr key={user.id} className={`hover:bg-slate-50/50 transition-colors ${!user.activo ? 'opacity-60 grayscale bg-slate-50/30' : ''}`}>
                   <td className="p-4">
                     <button 
@@ -307,10 +339,10 @@ export function UsersModule() {
                   </td>
                 </tr>
               ))}
-              {users.length === 0 && !error && (
+              {users.filter(u => selectedSedeFilter === 'ALL' || (userSedesMap[u.id] || []).includes(selectedSedeFilter)).length === 0 && !error && (
                 <tr>
                   <td colSpan="5" className="p-8 text-center text-slate-400 text-sm">
-                    No hay usuarios registrados en el sistema.
+                    No hay usuarios registrados para este filtro.
                   </td>
                 </tr>
               )}

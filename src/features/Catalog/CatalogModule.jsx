@@ -16,7 +16,7 @@ export function CatalogModule() {
   const [products, setProducts] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const { isAdmin } = useAuth()
-  const [showArchived, setShowArchived] = useState(false)
+  const [isArchivedView, setIsArchivedView] = useState(false)
   
   // NAVEGACIÓN PRINCIPAL (4 Niveles)
   const [activeAreaId, setActiveAreaId] = useState(null)
@@ -49,7 +49,7 @@ export function CatalogModule() {
 
   useEffect(() => {
     fetchData()
-  }, [activeSede?.id, showArchived])
+  }, [activeSede?.id, isArchivedView])
 
   useEffect(() => {
     if (products.length > 0 && categories.length > 0 && areas.length > 0 && location.state) {
@@ -78,7 +78,7 @@ export function CatalogModule() {
       const results = await Promise.allSettled([
         catalogService.getAreas(),
         catalogService.getCategories(),
-        catalogService.getProducts(activeSede?.id, showArchived)
+        catalogService.getProducts(activeSede?.id, isArchivedView)
       ])
       const [areasRes, catsRes, prodsRes] = results;
 
@@ -152,7 +152,7 @@ export function CatalogModule() {
 
   // --- MANEJADORES DE VISTAS (Navegación) ---
   const handleGoHome = () => {
-    setActiveAreaId(null); setActiveCategoryId(null); setActiveProductId(null); setSearchTerm(''); setViewState('MAIN')
+    setActiveAreaId(null); setActiveCategoryId(null); setActiveProductId(null); setSearchTerm(''); setViewState('MAIN'); setIsArchivedView(false);
   }
   const handleOpenArea = (id) => {
     setActiveAreaId(id); setActiveCategoryId(null); setActiveProductId(null); setViewState('MAIN')
@@ -350,10 +350,20 @@ export function CatalogModule() {
     <div className="space-y-6 relative animate-fade-in">
       
       {/* BREADCRUMBS — Color-coded */}
-      <nav className="flex flex-wrap items-center text-sm font-medium bg-white px-5 py-3.5 rounded-2xl card-soft border gap-y-2" style={{ borderColor: theme.accentBorder + '80' }}>
-        <button onClick={handleGoHome} className="flex items-center cursor-pointer rounded-lg px-2 py-1 -ml-2 transition-colors" style={{ color: !activeAreaId ? levelTheme.area.accent : '#94a3b8' }}>
-          <Home size={16} className="mr-1.5" /> <span className={!activeAreaId ? 'font-bold' : ''}>Inventario</span>
-        </button>
+      <nav className="flex flex-wrap items-center justify-between bg-white px-5 py-3.5 rounded-2xl card-soft border gap-y-2" style={{ borderColor: theme.accentBorder + '80' }}>
+        <div className="flex flex-wrap items-center text-sm font-medium">
+          <button onClick={handleGoHome} className="flex items-center cursor-pointer rounded-lg px-2 py-1 -ml-2 transition-colors" style={{ color: (!activeAreaId && !isArchivedView) ? levelTheme.area.accent : '#94a3b8' }}>
+            <Home size={16} className="mr-1.5" /> <span className={(!activeAreaId && !isArchivedView) ? 'font-bold' : ''}>Inventario</span>
+          </button>
+          
+          {isArchivedView && (
+            <>
+              <ChevronRight size={16} className="mx-1.5 text-slate-300" />
+              <span className="flex items-center font-bold px-2 py-1 text-orange-600">
+                <Archive size={16} className="mr-1.5" /> Papelera
+              </span>
+            </>
+          )}
         
         {activeAreaId && (
           <>
@@ -373,7 +383,7 @@ export function CatalogModule() {
           </>
         )}
         
-        {activeProductId && (
+        {activeProductId && !isArchivedView && (
           <>
             <ChevronRight size={16} className="mx-1.5 text-slate-300" />
             <span className="flex items-center font-bold px-2 py-1" style={{ color: levelTheme.kardex.accent }}>
@@ -381,10 +391,64 @@ export function CatalogModule() {
             </span>
           </>
         )}
+        </div>
+
+        {isAdmin && !isArchivedView && (
+          <button onClick={() => { handleGoHome(); setIsArchivedView(true); }} className="flex items-center text-xs font-bold text-slate-500 hover:text-orange-600 transition-colors cursor-pointer px-3 py-1.5 border border-slate-200 rounded-lg bg-slate-50 hover:bg-orange-50 hover:border-orange-200">
+            <Archive size={14} className="mr-1.5" /> Papelera
+          </button>
+        )}
       </nav>
 
+      {/* VISTA ARCHIVADOS */}
+      {isArchivedView && !activeProductId && (
+        <div className="space-y-5 animate-slide-right">
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-2xl font-bold text-orange-700">Papelera de Reciclaje</h2>
+              <p className="text-sm text-slate-400 mt-1">Productos archivados en esta sede que ya no son visibles</p>
+            </div>
+          </div>
+          
+          <div className="bg-white p-3 rounded-2xl card-soft border border-slate-100 relative">
+            <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
+            <input type="text" placeholder="Buscar productos archivados..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-3 bg-slate-50 border-none rounded-xl outline-none" />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 stagger-children">
+            {products.filter(p => (p.sede_activo === false || p.activo === false) && p.nombre.toLowerCase().includes(searchLower)).map(product => (
+              <div key={product.id} onClick={() => handleOpenProduct(product)} className="bg-white p-5 rounded-2xl card-soft border border-orange-200 flex flex-col relative overflow-hidden group cursor-pointer hover:border-orange-400 transition-colors">
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-orange-400 rounded-l-2xl"></div>
+                <div className="pl-3 flex justify-between items-start">
+                  <div>
+                    <h3 className="text-base font-bold text-slate-800 group-hover:text-orange-600 transition-colors">{product.nombre}</h3>
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-1">{product.categorias?.nombre}</p>
+                    <p className="text-slate-400 text-sm mt-0.5">SKU: {product.unidad_medida}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Stock</p>
+                    <p className="text-xl font-black text-slate-600">{product.stock_actual}</p>
+                  </div>
+                </div>
+                <div className="pl-3 mt-4 pt-3 border-t border-slate-100 flex justify-end">
+                  <button onClick={(e) => confirmDelete(e, product, 'PRODUCT_RESTORE')} className="flex items-center px-4 py-2 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-xl font-bold text-xs cursor-pointer transition-colors w-full justify-center">
+                    <Archive size={14} className="mr-2" /> Restaurar Producto
+                  </button>
+                </div>
+              </div>
+            ))}
+            {products.filter(p => p.sede_activo === false || p.activo === false).length === 0 && (
+              <div className="col-span-full text-center py-16 text-slate-400 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center">
+                <Archive size={40} className="text-slate-300 mb-3" />
+                <p>La papelera está vacía.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* NIVEL 1: ÁREAS */}
-      {!activeAreaId && (
+      {!activeAreaId && !isArchivedView && (
         <div className="space-y-5">
           <div className="flex justify-between items-center">
             <div>
@@ -425,7 +489,7 @@ export function CatalogModule() {
       )}
 
       {/* NIVEL 2: CATEGORÍAS */}
-      {activeAreaId && !activeCategoryId && (
+      {activeAreaId && !activeCategoryId && !isArchivedView && (
         <div className="space-y-5 animate-slide-right">
           <div className="flex justify-between items-center">
             <div>
@@ -466,7 +530,7 @@ export function CatalogModule() {
       )}
 
       {/* NIVEL 3: PRODUCTOS */}
-      {activeCategoryId && !activeProductId && (
+      {activeCategoryId && !activeProductId && !isArchivedView && (
         <div className="space-y-5 animate-slide-right">
           <div className="flex justify-between items-center">
             <div>
@@ -474,11 +538,6 @@ export function CatalogModule() {
               <p className="text-sm text-slate-400 mt-1">en {activeCategoryObj?.nombre}</p>
             </div>
             <div className="flex space-x-2">
-              {isAdmin && (
-                <button onClick={() => setShowArchived(!showArchived)} className={`flex items-center px-4 py-2 rounded-xl font-bold border cursor-pointer transition-colors ${showArchived ? 'bg-orange-100 text-orange-700 border-orange-200' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`}>
-                  <Archive size={16} className="mr-2"/> {showArchived ? 'Ocultar Archivados' : 'Ver Archivados'}
-                </button>
-              )}
               <button onClick={openCreateProduct} className="flex items-center px-5 py-2.5 text-white rounded-xl font-bold shadow-md cursor-pointer hover:shadow-lg" style={{ backgroundColor: levelTheme.product.accent }}>
                 <Plus size={18} className="mr-2"/> Nuevo Producto
               </button>
