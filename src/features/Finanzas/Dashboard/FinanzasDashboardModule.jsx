@@ -35,17 +35,17 @@ export function FinanzasDashboardModule() {
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in pb-8">
+    <div className="space-y-6 animate-fade-in-up pb-8">
       {/* HEADER Y FILTROS */}
       <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-[#1F2937]">Dashboard Gerencial</h2>
-          <p className="text-[#6B7280] text-sm mt-0.5">Inteligencia de negocios, tendencias e historial analítico</p>
+          <h2 className="text-2xl font-bold text-[#2C211F]">Dashboard Gerencial</h2>
+          <p className="text-[#5D4B47] text-sm mt-0.5">Inteligencia de negocios, tendencias e historial analítico</p>
         </div>
         
         <div className="flex flex-wrap items-center gap-3">
           {/* Presets Rápidos de Fecha */}
-          <div className="inline-flex p-1 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 shadow-sm">
+          <div className="inline-flex p-1 bg-white border border-[#E9DFD9] rounded-xl text-xs font-bold text-[#5D4B47] shadow-sm">
             {[
               { id: 'ALL', label: 'Todo' },
               { id: 'HOY', label: 'Hoy' },
@@ -58,8 +58,8 @@ export function FinanzasDashboardModule() {
                 onClick={() => applyPreset(p.id)}
                 className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                   activePreset === p.id 
-                    ? 'bg-[#A16207] text-white shadow-sm font-black' 
-                    : 'hover:text-slate-900 hover:bg-slate-50'
+                    ? 'bg-[#A80F14] text-[#FFF9F0] shadow-sm font-black' 
+                    : 'hover:text-[#2C211F] hover:bg-[#FAF7F4]'
                 }`}
               >
                 {p.label}
@@ -68,13 +68,13 @@ export function FinanzasDashboardModule() {
           </div>
 
           {/* Selector de Sede */}
-          <div className="flex items-center space-x-2 bg-white border border-slate-200 rounded-xl px-3 py-1.5 shadow-sm focus-within:border-amber-600">
-            <Filter size={15} className="text-slate-400" />
+          <div className="flex items-center space-x-2 bg-white border border-[#E9DFD9] rounded-xl px-3 py-1.5 shadow-sm focus-within:border-[#A80F14]">
+            <Filter size={15} className="text-[#877571]" />
             <select 
               value={finanzas.filterSede}
               aria-label="Filtrar por sede"
               onChange={(e) => finanzas.setFilterSede(e.target.value)}
-              className="bg-transparent text-xs font-bold text-slate-700 outline-none cursor-pointer pr-2"
+              className="bg-transparent text-xs font-bold text-[#2C211F] outline-none cursor-pointer pr-2"
             >
               <option value="ALL">Todas las Sedes</option>
               {finanzas.sedesDisponibles.map(s => (
@@ -84,8 +84,8 @@ export function FinanzasDashboardModule() {
           </div>
 
           {/* Custom Date Range Picker */}
-          <div className="flex items-center space-x-1.5 bg-white border border-slate-200 rounded-xl px-3 py-1.5 shadow-sm text-xs">
-            <Calendar size={15} className="text-slate-400 shrink-0" />
+          <div className="flex items-center space-x-1.5 bg-white border border-[#E9DFD9] rounded-xl px-3 py-1.5 shadow-sm text-xs">
+            <Calendar size={15} className="text-[#877571] shrink-0" />
             <input 
               type="date" 
               aria-label="Fecha de inicio"
@@ -94,9 +94,9 @@ export function FinanzasDashboardModule() {
                 setActivePreset('CUSTOM')
                 finanzas.setDateRange({...finanzas.dateRange, start: e.target.value})
               }}
-              className="bg-transparent font-semibold text-slate-700 outline-none w-28 text-xs"
+              className="bg-transparent font-semibold text-[#2C211F] outline-none w-28 text-xs"
             />
-            <span className="text-slate-300">-</span>
+            <span className="text-[#877571]">-</span>
             <input 
               type="date" 
               aria-label="Fecha de fin"
@@ -105,7 +105,7 @@ export function FinanzasDashboardModule() {
                 setActivePreset('CUSTOM')
                 finanzas.setDateRange({...finanzas.dateRange, end: e.target.value})
               }}
-              className="bg-transparent font-semibold text-slate-700 outline-none w-28 text-xs"
+              className="bg-transparent font-semibold text-[#2C211F] outline-none w-28 text-xs"
             />
           </div>
         </div>
@@ -113,8 +113,8 @@ export function FinanzasDashboardModule() {
 
       {finanzas.loading ? (
         <div className="flex flex-col items-center justify-center h-64 space-y-3">
-          <Loader2 className="animate-spin text-emerald-500" size={36} />
-          <span className="text-sm text-slate-400 font-medium">Procesando analítica de datos...</span>
+          <Loader2 className="animate-spin text-[#A80F14]" size={36} />
+          <span className="text-sm text-[#5D4B47] font-medium">Procesando analítica financiera...</span>
         </div>
       ) : (
         <>

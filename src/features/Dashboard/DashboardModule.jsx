@@ -12,8 +12,8 @@ export function DashboardModule() {
   if (dashboard.isLoading) {
     return (
       <div className="flex flex-col justify-center items-center h-64 space-y-3">
-        <Loader2 className="animate-spin text-[#A16207]" size={38} />
-        <span className="text-sm font-medium text-[#6B7280]">Cargando panel de control...</span>
+        <Loader2 className="animate-spin text-[#A80F14]" size={38} />
+        <span className="text-sm font-medium text-[#5D4B47]">Cargando panel de control...</span>
       </div>
     )
   }
@@ -21,9 +21,8 @@ export function DashboardModule() {
   return (
     <div className="space-y-6 animate-fade-in-up pb-8">
       <div>
-        {/* Título en sans-serif limpia para consistencia ERP */}
-        <h2 className="text-2xl font-bold text-[#1F2937]">Panel de Control</h2>
-        <p className="text-[#6B7280] text-sm mt-0.5">Resumen general del inventario y estado operativo</p>
+        <h2 className="text-2xl font-bold text-[#2C211F]">Panel de Control</h2>
+        <p className="text-[#5D4B47] text-sm mt-0.5">Resumen general del inventario y estado operativo</p>
       </div>
 
       {/* KPI CARDS */}

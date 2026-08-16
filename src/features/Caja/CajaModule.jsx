@@ -14,14 +14,14 @@ export function CajaModule() {
   if (caja.sedeLoading || caja.loading) {
     return (
       <div className="flex flex-col items-center justify-center h-64 space-y-3">
-        <Loader2 className="animate-spin text-amber-700" size={36} />
-        <span className="text-sm text-slate-400 font-medium">Cargando estado de caja...</span>
+        <Loader2 className="animate-spin text-[#A80F14]" size={36} />
+        <span className="text-sm text-[#5D4B47] font-medium">Cargando estado de caja...</span>
       </div>
     )
   }
 
   if (!caja.activeSede) {
-    return <div className="p-12 text-center text-slate-500 font-medium">No hay sede seleccionada.</div>
+    return <div className="p-12 text-center text-[#5D4B47] font-medium">No hay sede seleccionada.</div>
   }
 
   // ── Vista: Apertura ──
@@ -44,9 +44,9 @@ export function CajaModule() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
-          <h2 className="text-2xl font-bold text-[#1F2937]">Cuadre de Caja</h2>
+          <h2 className="text-2xl font-bold text-[#2C211F]">Cuadre de Caja</h2>
           <div className="flex flex-wrap items-center gap-2 mt-1">
-            <span className="inline-flex items-center space-x-1.5 text-xs text-slate-400">
+            <span className="inline-flex items-center space-x-1.5 text-xs text-[#877571]">
               <Clock size={12} />
               <span>
                 Apertura: {caja.turnoActivo.fecha_apertura
@@ -54,19 +54,19 @@ export function CajaModule() {
                   : '—'}
               </span>
             </span>
-            <span className="text-slate-200 hidden sm:inline">•</span>
-            <span className="text-xs text-slate-600 font-medium">{caja.turnoActivo.usuarios?.nombre_completo}</span>
-            <span className="text-slate-200 hidden sm:inline">•</span>
-            <span className="text-xs font-bold text-amber-900 bg-amber-100 px-2.5 py-0.5 rounded-full">{caja.activeSede.nombre}</span>
+            <span className="text-[#D8CBC5] hidden sm:inline">•</span>
+            <span className="text-xs text-[#5D4B47] font-medium">{caja.turnoActivo.usuarios?.nombre_completo}</span>
+            <span className="text-[#D8CBC5] hidden sm:inline">•</span>
+            <span className="text-xs font-bold text-[#3A0F0F] bg-[#FFF9F0] border border-[#E7C77A] px-2.5 py-0.5 rounded-full">{caja.activeSede.nombre}</span>
           </div>
         </div>
 
         {/* Mobile Tabs Switcher (lg:hidden) */}
-        <div className="flex lg:hidden p-1 bg-white border border-slate-200 rounded-2xl shadow-sm text-xs font-bold mt-2 sm:mt-0">
+        <div className="flex lg:hidden p-1 bg-white border border-[#E9DFD9] rounded-2xl shadow-sm text-xs font-bold mt-2 sm:mt-0">
           <button
             onClick={() => setActiveMobileTab('EFECTIVO')}
             className={`flex-1 flex items-center justify-center space-x-1.5 py-2 px-3 rounded-xl transition-all cursor-pointer ${
-              activeMobileTab === 'EFECTIVO' ? 'bg-amber-600 text-white shadow-sm font-black' : 'text-slate-500 hover:text-slate-900'
+              activeMobileTab === 'EFECTIVO' ? 'bg-[#A80F14] text-[#FFF9F0] shadow-sm font-bold' : 'text-[#5D4B47] hover:text-[#2C211F]'
             }`}
           >
             <Banknote size={15} />
@@ -75,7 +75,7 @@ export function CajaModule() {
           <button
             onClick={() => setActiveMobileTab('FLUJOS')}
             className={`flex-1 flex items-center justify-center space-x-1.5 py-2 px-3 rounded-xl transition-all cursor-pointer ${
-              activeMobileTab === 'FLUJOS' ? 'bg-amber-600 text-white shadow-sm font-black' : 'text-slate-500 hover:text-slate-900'
+              activeMobileTab === 'FLUJOS' ? 'bg-[#A80F14] text-[#FFF9F0] shadow-sm font-bold' : 'text-[#5D4B47] hover:text-[#2C211F]'
             }`}
           >
             <CreditCard size={15} />
@@ -84,7 +84,7 @@ export function CajaModule() {
           <button
             onClick={() => setActiveMobileTab('CIERRE')}
             className={`flex-1 flex items-center justify-center space-x-1.5 py-2 px-3 rounded-xl transition-all cursor-pointer ${
-              activeMobileTab === 'CIERRE' ? 'bg-amber-600 text-white shadow-sm font-black' : 'text-slate-500 hover:text-slate-900'
+              activeMobileTab === 'CIERRE' ? 'bg-[#A80F14] text-[#FFF9F0] shadow-sm font-bold' : 'text-[#5D4B47] hover:text-[#2C211F]'
             }`}
           >
             <Lock size={15} />

@@ -1,24 +1,56 @@
 @import "tailwindcss";
 
 /* ==============================
-   DESIGN SYSTEM — MMJRest (Mama Julia)
-   Identity: ERP Gastronómico Premium
-   Palette: Mostaza (#A16207), Café Oscuro (#221C17), Fondo Neutro (#FAF7F2)
+   DESIGN SYSTEM — MMJRest (Mama Julia Digital)
+   Identity: ERP Gastronómico y Control Operativo Mama Julia
+   Palette: Rojo Marca (#A80F14), Vino (#3A0F0F), Dorado (#D6A24A), Fondo Crema (#FAF7F4)
    ============================== */
 
+@theme {
+  --color-brand-red: #A80F14;
+  --color-brand-red-hover: #7F0C10;
+  --color-brand-red-light: #C61B20;
+  --color-brand-wine: #3A0F0F;
+  --color-brand-gold: #D6A24A;
+  --color-brand-gold-soft: #E7C77A;
+  --color-brand-cream: #FFF9F0;
+  --color-brand-cream-soft: #F8EEDF;
+  --color-bg: #FAF7F4;
+  --color-surface: #FFFFFF;
+  --color-sidebar: #211716;
+  --color-text-primary: #2C211F;
+  --color-text-secondary: #5D4B47;
+  --color-text-muted: #877571;
+  --color-border-main: #D8CBC5;
+  --color-border-light: #E9DFD9;
+}
+
 :root {
-  /* Paleta Unificada */
-  --color-background: #FAF7F2;    /* Fondo Neutro Cálido */
-  --color-card: #FFFFFF;          /* Tarjetas Blancas */
-  --color-sidebar: #221C17;       /* Sidebar Café Oscuro Gastronómico */
-  --color-primary: #A16207;       /* Mostaza (Marca, Botones, Acentos) */
-  --color-hover: #9A3412;         /* Terracota (Hover y Acciones Secundarias) */
-  --color-success: #16A34A;       /* Verde Éxito / Ingresos */
-  --color-error: #DC2626;         /* Rojo Error / Egresos */
-  --color-info: #2563EB;          /* Azul Información */
-  --color-foreground: #1F2937;    /* Texto Principal */
-  --color-text-secondary: #6B7280;/* Texto Secundario */
-  --color-border: #E5E7EB;        /* Bordes */
+  /* Paleta Unificada de Tokens CSS */
+  --color-background: #FAF7F4;       /* Fondo Neutro Cálido */
+  --color-card: #FFFFFF;             /* Tarjetas Blancas */
+  --color-sidebar: #211716;          /* Sidebar Oscuro Gastronómico */
+  --color-primary: #A80F14;          /* Rojo Mama Julia (Marca, Acciones Primarias) */
+  --color-primary-hover: #7F0C10;    /* Rojo Oscuro Hover */
+  --color-primary-light: #C61B20;    /* Rojo Claro Activo */
+  --color-wine: #3A0F0F;             /* Vino Profundo */
+  --color-gold: #D6A24A;             /* Dorado Acento Premium */
+  --color-gold-soft: #E7C77A;        /* Dorado Suave */
+  --color-cream: #FFF9F0;            /* Crema Claro */
+  --color-cream-soft: #F8EEDF;       /* Crema Suave */
+  
+  /* Colores Semánticos */
+  --color-success: #15803D;          /* Verde Éxito / Stock Óptimo / Ingresos */
+  --color-warning: #B45309;          /* Ámbar Alerta / Stock Bajo */
+  --color-danger: #B42318;           /* Rojo Error / Stock Crítico / Egresos */
+  --color-info: #2563EB;             /* Azul Información */
+  
+  /* Texto y Bordes */
+  --color-foreground: #2C211F;       /* Texto Principal */
+  --color-text-secondary: #5D4B47;   /* Texto Secundario */
+  --color-text-muted: #877571;       /* Texto Muted / Auxiliar */
+  --color-border: #D8CBC5;           /* Bordes Principales */
+  --color-border-light: #E9DFD9;     /* Bordes Suaves / Divisores */
 }
 
 /* Base */
@@ -32,7 +64,7 @@ body {
   touch-action: manipulation;
 }
 
-/* Display Font (RESERVADO ÚNICAMENTE PARA EL LOGO "MAMA JULIA") */
+/* Display Font (RESERVADO ÚNICAMENTE PARA EL LOGOTIPO "MAMA JULIA") */
 .font-display {
   font-family: 'Playfair Display SC', Georgia, serif;
 }
@@ -53,7 +85,7 @@ button, a, select {
 
 /* Custom Animations */
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 @keyframes fadeIn {
@@ -62,33 +94,49 @@ button, a, select {
 }
 
 .animate-fade-in-up {
-  animation: fadeInUp 0.3s ease-out both;
+  animation: fadeInUp 0.25s ease-out both;
 }
 .animate-fade-in {
-  animation: fadeIn 0.25s ease-out both;
+  animation: fadeIn 0.2s ease-out both;
 }
 
 /* Stagger children animation */
 .stagger-children > * {
-  animation: fadeInUp 0.3s ease-out both;
+  animation: fadeInUp 0.25s ease-out both;
 }
 .stagger-children > *:nth-child(1) { animation-delay: 0ms; }
-.stagger-children > *:nth-child(2) { animation-delay: 50ms; }
-.stagger-children > *:nth-child(3) { animation-delay: 100ms; }
-.stagger-children > *:nth-child(4) { animation-delay: 150ms; }
-.stagger-children > *:nth-child(5) { animation-delay: 200ms; }
-.stagger-children > *:nth-child(6) { animation-delay: 250ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 40ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 80ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 120ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 160ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 200ms; }
 
 /* ERP Clean Card Shadows */
 .card-soft {
   box-shadow: 
-    0 1px 3px 0 rgba(0, 0, 0, 0.04),
-    0 1px 2px -1px rgba(0, 0, 0, 0.03);
+    0 1px 3px 0 rgba(58, 15, 15, 0.04),
+    0 1px 2px -1px rgba(58, 15, 15, 0.03);
 }
 .card-soft:hover {
   box-shadow: 
-    0 4px 12px -2px rgba(34, 28, 23, 0.06),
-    0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    0 4px 12px -2px rgba(58, 15, 15, 0.07),
+    0 2px 4px -1px rgba(58, 15, 15, 0.03);
+}
+
+/* Scrollbar sutil gastronómico */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #D8CBC5;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #877571;
 }
 
 /* Accessibility: prefers-reduced-motion */

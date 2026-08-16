@@ -6,30 +6,30 @@ export function TrendChart({ data, sedes }) {
   const fmt = (val) => `S/ ${Number(val || 0).toLocaleString('es-PE', { minimumFractionDigits: 2 })}`
 
   const SEDE_COLORS = {
-    'Lince': '#059669',
-    'Pueblo Libre': '#3B82F6',
+    'Lince': '#A80F14',
+    'Pueblo Libre': '#D6A24A',
   }
-  const FALLBACK_COLORS = ['#8B5CF6', '#F59E0B', '#EC4899', '#14B8A6']
+  const FALLBACK_COLORS = ['#3A0F0F', '#15803D', '#2563EB', '#B45309']
 
   const activeSedes = sedes && sedes.length > 0 ? sedes.map(s => s.nombre) : ['Lince', 'Pueblo Libre']
 
   return (
-    <div className="bg-white p-6 rounded-2xl card-soft border border-slate-100">
+    <div className="bg-white p-6 rounded-2xl card-soft border border-[#E9DFD9]">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-2">
-          <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
+          <div className="p-2 bg-rose-50 text-[#A80F14] border border-rose-100 rounded-xl">
             <TrendingUp size={20} />
           </div>
           <div>
-            <h3 className="text-base font-bold text-slate-800">Evolución de Ganancias Mensuales</h3>
-            <p className="text-xs text-slate-400">Comparativa histórica de ingresos netos por sede</p>
+            <h3 className="text-base font-bold text-[#2C211F]">Evolución de Ganancias Mensuales</h3>
+            <p className="text-xs text-[#5D4B47]">Comparativa histórica de ingresos netos por sede</p>
           </div>
         </div>
       </div>
 
       <div className="h-[320px] w-full">
         {(!data || data.length === 0) ? (
-          <div className="flex justify-center items-center h-full text-slate-400 text-sm">
+          <div className="flex justify-center items-center h-full text-[#877571] text-sm">
             No hay suficiente historial mensual registrado para graficar la tendencia.
           </div>
         ) : (
@@ -46,24 +46,24 @@ export function TrendChart({ data, sedes }) {
                   )
                 })}
               </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E9DFD9" />
               <XAxis 
                 dataKey="name" 
                 axisLine={false} 
                 tickLine={false} 
-                tick={{ fill: '#94a3b8', fontSize: 12, fontFamily: 'Karla' }} 
+                tick={{ fill: '#877571', fontSize: 12, fontFamily: 'Karla' }} 
                 dy={10} 
               />
               <YAxis 
                 axisLine={false} 
                 tickLine={false} 
-                tick={{ fill: '#94a3b8', fontSize: 12, fontFamily: 'Karla' }} 
+                tick={{ fill: '#877571', fontSize: 12, fontFamily: 'Karla' }} 
                 tickFormatter={(v) => `S/ ${v}`}
               />
               <Tooltip 
-                cursor={{ stroke: '#cbd5e1', strokeWidth: 1, strokeDasharray: '4 4' }}
+                cursor={{ stroke: '#D8CBC5', strokeWidth: 1, strokeDasharray: '4 4' }}
                 formatter={(val) => [fmt(val), '']}
-                contentStyle={{ borderRadius: '12px', border: '1px solid #f1f5f9', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                contentStyle={{ borderRadius: '12px', border: '1px solid #E9DFD9', boxShadow: '0 10px 15px -3px rgba(58, 15, 15, 0.08)' }}
               />
               <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
               
