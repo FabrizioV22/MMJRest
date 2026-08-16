@@ -61,41 +61,41 @@ export function CajaModule() {
           </div>
         </div>
 
-        {/* Mobile Tabs Switcher (lg:hidden) */}
-        <div className="flex lg:hidden p-1 bg-white border border-[#E9DFD9] rounded-2xl shadow-sm text-xs font-bold mt-2 sm:mt-0">
+        {/* Mobile Tabs Switcher con Colores Diferenciados (lg:hidden) */}
+        <div className="flex lg:hidden p-1 bg-white border border-[#E9DFD9] rounded-2xl shadow-xs text-xs font-bold mt-2 sm:mt-0">
           <button
             onClick={() => setActiveMobileTab('EFECTIVO')}
             className={`flex-1 flex items-center justify-center space-x-1.5 py-2 px-3 rounded-xl transition-all cursor-pointer ${
-              activeMobileTab === 'EFECTIVO' ? 'bg-[#A80F14] text-[#FFF9F0] shadow-sm font-bold' : 'text-[#5D4B47] hover:text-[#2C211F]'
+              activeMobileTab === 'EFECTIVO' ? 'bg-[#15803D] text-white shadow-sm font-bold' : 'text-[#5D4B47] hover:text-[#2C211F]'
             }`}
           >
             <Banknote size={15} />
-            <span>Físico</span>
+            <span>1. Físico</span>
           </button>
           <button
             onClick={() => setActiveMobileTab('FLUJOS')}
             className={`flex-1 flex items-center justify-center space-x-1.5 py-2 px-3 rounded-xl transition-all cursor-pointer ${
-              activeMobileTab === 'FLUJOS' ? 'bg-[#A80F14] text-[#FFF9F0] shadow-sm font-bold' : 'text-[#5D4B47] hover:text-[#2C211F]'
+              activeMobileTab === 'FLUJOS' ? 'bg-[#2563EB] text-white shadow-sm font-bold' : 'text-[#5D4B47] hover:text-[#2C211F]'
             }`}
           >
             <CreditCard size={15} />
-            <span>Flujos</span>
+            <span>2. Flujos</span>
           </button>
           <button
             onClick={() => setActiveMobileTab('CIERRE')}
             className={`flex-1 flex items-center justify-center space-x-1.5 py-2 px-3 rounded-xl transition-all cursor-pointer ${
-              activeMobileTab === 'CIERRE' ? 'bg-[#A80F14] text-[#FFF9F0] shadow-sm font-bold' : 'text-[#5D4B47] hover:text-[#2C211F]'
+              activeMobileTab === 'CIERRE' ? 'bg-[#211716] text-[#FFF9F0] shadow-sm font-bold' : 'text-[#5D4B47] hover:text-[#2C211F]'
             }`}
           >
             <Lock size={15} />
-            <span>Cierre</span>
+            <span>3. Cierre</span>
           </button>
         </div>
       </div>
 
       {/* Grid Desktop & Render Condicional Mobile */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        {/* Panel 1: Efectivo Físico */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+        {/* Columna 1: Efectivo Físico (Verde Esmeralda) */}
         <div className={`${activeMobileTab === 'EFECTIVO' ? 'block' : 'hidden'} lg:block lg:col-span-4`}>
           <EfectivoPanel
             arqueo={caja.arqueo}
@@ -104,7 +104,7 @@ export function CajaModule() {
           />
         </div>
 
-        {/* Panel 2: Ventas y Flujos */}
+        {/* Columna 2: Ventas y Flujos (Azul Digital) */}
         <div className={`${activeMobileTab === 'FLUJOS' ? 'block' : 'hidden'} lg:block lg:col-span-4`}>
           <FlujosPanel
             ventasPOS={caja.ventasPOS} setVentasPOS={caja.setVentasPOS}
@@ -116,7 +116,7 @@ export function CajaModule() {
           />
         </div>
 
-        {/* Panel 3: Cierre de Caja */}
+        {/* Columna 3: Cierre de Caja (Auditoría & Cierre 3 Pasos) */}
         <div className={`${activeMobileTab === 'CIERRE' ? 'block' : 'hidden'} lg:block lg:col-span-4`}>
           <CierrePanel
             turno={caja.turnoActivo}
@@ -130,6 +130,9 @@ export function CajaModule() {
             ventasEfectivo={caja.ventasEfectivo}
             montoEsperado={caja.montoEsperado}
             diferencia={caja.diferencia}
+            extrasEfectivo={caja.extrasEfectivo}
+            gastosEfectivo={caja.gastosEfectivo}
+            propinasEfectivo={caja.propinasEfectivo}
             editandoFondo={caja.editandoFondo} setEditandoFondo={caja.setEditandoFondo}
             nuevoFondo={caja.nuevoFondo} setNuevoFondo={caja.setNuevoFondo}
             onGuardarFondo={caja.handleGuardarFondo}

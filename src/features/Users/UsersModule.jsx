@@ -198,8 +198,8 @@ export function UsersModule() {
                   onClick={() => handleStatusChange(user.id, user.activo, user.nombre_completo)}
                   className={`px-3 py-1 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                     user.activo 
-                      ? 'bg-emerald-50 text-[#15803D] border border-emerald-200 hover:bg-rose-50 hover:text-[#B42318]' 
-                      : 'bg-rose-50 text-[#B42318] border border-rose-200 hover:bg-emerald-50 hover:text-[#15803D]'
+                      ? 'bg-emerald-50 text-[#15803D] border border-emerald-200 hover:bg-rose-50 hover:text-[#B42318] hover:border-rose-200' 
+                      : 'bg-rose-50 text-[#B42318] border border-rose-200 hover:bg-emerald-50 hover:text-[#15803D] hover:border-emerald-200'
                   }`}
                 >
                   {user.activo ? 'Activo' : 'Inactivo'}
@@ -274,8 +274,8 @@ export function UsersModule() {
                       onClick={() => handleStatusChange(user.id, user.activo, user.nombre_completo)}
                       className={`px-3 py-1 text-xs font-bold rounded-xl transition-all cursor-pointer shadow-sm ${
                         user.activo 
-                          ? 'bg-emerald-50 text-[#15803D] border border-emerald-200 hover:bg-rose-50 hover:text-[#B42318]' 
-                          : 'bg-rose-50 text-[#B42318] border border-rose-200 hover:bg-emerald-50 hover:text-[#15803D]'
+                          ? 'bg-emerald-50 text-[#15803D] border border-emerald-200 hover:bg-rose-50 hover:text-[#B42318] hover:border-rose-200' 
+                          : 'bg-rose-50 text-[#B42318] border border-rose-200 hover:bg-emerald-50 hover:text-[#15803D] hover:border-emerald-200'
                       }`}
                       title={user.activo ? "Clic para desactivar acceso" : "Clic para reactivar acceso"}
                     >
