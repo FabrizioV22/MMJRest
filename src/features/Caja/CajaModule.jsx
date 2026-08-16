@@ -131,8 +131,11 @@ export function CajaModule() {
             montoEsperado={caja.montoEsperado}
             diferencia={caja.diferencia}
             extrasEfectivo={caja.extrasEfectivo}
+            extrasDigital={caja.extrasDigital}
             gastosEfectivo={caja.gastosEfectivo}
+            gastosDigital={caja.gastosDigital}
             propinasEfectivo={caja.propinasEfectivo}
+            propinasDigital={caja.propinasDigital}
             editandoFondo={caja.editandoFondo} setEditandoFondo={caja.setEditandoFondo}
             nuevoFondo={caja.nuevoFondo} setNuevoFondo={caja.setNuevoFondo}
             onGuardarFondo={caja.handleGuardarFondo}
