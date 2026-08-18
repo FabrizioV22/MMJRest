@@ -243,23 +243,33 @@ export function CatalogModule() {
   const openCreateProduct = () => {
     const aId = activeAreaId || (areas[0]?.id || '')
     const cId = activeCategoryId || categories.find(c => c.area_id === aId)?.id || ''
-    setProdForm({ id: null, nombre: '', unidad_medida: '', area_id: aId, categoria_id: cId }); setIsEditMode(false); setViewState('FORM_PROD')
+    setProdForm({ id: null, nombre: '', unidad_medida: '', area_id: aId, categoria_id: cId, activar_todas: false }); setIsEditMode(false); setViewState('FORM_PROD')
   }
   const openEditProduct = (e, product) => {
     if (e) e.stopPropagation()
     const productCat = categories.find(c => c.id === product.categoria_id)
-    setProdForm({ id: product.id, nombre: product.nombre, unidad_medida: product.unidad_medida, area_id: productCat?.area_id || '', categoria_id: product.categoria_id }); setIsEditMode(true); setViewState('FORM_PROD')
+    setProdForm({ id: product.id, nombre: product.nombre, unidad_medida: product.unidad_medida, area_id: productCat?.area_id || '', categoria_id: product.categoria_id, activar_todas: false }); setIsEditMode(true); setViewState('FORM_PROD')
   }
   const handleSaveProduct = async () => {
     if (!prodForm.nombre || !prodForm.unidad_medida || !prodForm.categoria_id) return toast.warning("Completa todos los campos.")
     setIsSubmitting(true)
     try {
-      const payload = { nombre: prodForm.nombre, unidad_medida: prodForm.unidad_medida, categoria_id: prodForm.categoria_id }
-      if (isEditMode) await catalogService.updateProduct(prodForm.id, payload)
-      else await catalogService.createProduct(payload)
+      if (isEditMode) {
+        const payload = { nombre: prodForm.nombre, unidad_medida: prodForm.unidad_medida, categoria_id: prodForm.categoria_id }
+        await catalogService.updateProduct(prodForm.id, payload)
+      } else {
+        const payload = {
+          nombre: prodForm.nombre,
+          unidad_medida: prodForm.unidad_medida,
+          categoria_id: prodForm.categoria_id,
+          sede_id: activeSede?.id,
+          activar_todas: prodForm.activar_todas
+        }
+        await catalogService.createProduct(payload)
+      }
       toast.success(isEditMode ? 'Producto actualizado' : 'Producto creado')
       await fetchData(); cancelView()
-    } catch (error) { toast.error('Error guardando producto.') } finally { setIsSubmitting(false) }
+    } catch (error) { toast.error(error.message || 'Error guardando producto.') } finally { setIsSubmitting(false) }
   }
 
   // --- ARCHIVAR / RESTAURAR ---
@@ -349,6 +359,22 @@ export function CatalogModule() {
                     {categories.filter(c => c.area_id === prodForm.area_id).map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
                   </select>
                 </div>
+
+                {!isEditMode && (
+                  <div className="md:col-span-2 pt-1">
+                    <label className="flex items-center space-x-3 p-3.5 bg-[#FAF7F4] border border-[#D8CBC5] rounded-xl cursor-pointer hover:bg-[#F3ECE5] transition-colors select-none">
+                      <input
+                        type="checkbox"
+                        checked={prodForm.activar_todas || false}
+                        onChange={e => setProdForm({...prodForm, activar_todas: e.target.checked})}
+                        className="w-4 h-4 text-[#A80F14] rounded border-[#D8CBC5] focus:ring-[#A80F14] cursor-pointer accent-[#A80F14]"
+                      />
+                      <span className="text-xs text-[#5D4B47] font-medium leading-relaxed">
+                        Activar también en todas las sedes (por defecto solo estará visible y activo en <strong className="text-[#2C211F]">{activeSede?.nombre || 'esta sede'}</strong>)
+                      </span>
+                    </label>
+                  </div>
+                )}
               </>
             )}
             {viewState === 'FORM_CAT' && (

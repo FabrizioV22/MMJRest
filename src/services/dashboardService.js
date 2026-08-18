@@ -7,6 +7,7 @@ export const dashboardService = {
         .from('stock_sedes')
         .select('stock_actual, sedes(id, nombre), productos!inner(id, nombre, unidad_medida, activo, categorias(id, nombre))')
         .eq('productos.activo', true)
+        .eq('activo', true)
         .lt('stock_actual', threshold)
         .order('stock_actual', { ascending: true })
 
@@ -74,11 +75,12 @@ export const dashboardService = {
 
       if (err2) console.error('Error counting categories:', err2)
 
-      // 3. Items con stock bajo en stock_sedes
+      // 3. Items con stock bajo en stock_sedes (solo activos por sede)
       let queryLow = supabase
         .from('stock_sedes')
         .select('id, productos!inner(activo)', { count: 'exact', head: true })
         .eq('productos.activo', true)
+        .eq('activo', true)
         .lt('stock_actual', 10)
 
       if (sedeId) {

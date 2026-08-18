@@ -1,9 +1,10 @@
-import { LayoutDashboard, Package, Wallet, Users, LineChart } from 'lucide-react'
+import { LayoutDashboard, Package, Wallet, Users, LineChart, Clock } from 'lucide-react'
 import { DashboardModule } from '../features/Dashboard/DashboardModule'
 import { FinanzasDashboardModule } from '../features/Finanzas/Dashboard/FinanzasDashboardModule'
 import { CatalogModule } from '../features/Catalog/CatalogModule'
 import { UsersModule } from '../features/Users/UsersModule'
 import { CajaModule } from '../features/Caja/CajaModule'
+import { AsistenciaModule } from '../features/Asistencia/AsistenciaModule'
 
 export const APP_ROUTES = [
   { 
@@ -33,6 +34,13 @@ export const APP_ROUTES = [
     icon: Wallet, 
     component: CajaModule, 
     allowedRoles: ['ADMIN', 'MESERO'] 
+  },
+  {
+    path: '/asistencia',
+    name: 'Asistencia',
+    icon: Clock,
+    component: AsistenciaModule,
+    allowedRoles: ['ADMIN', 'MESERO', 'ALMACEN']
   },
   { 
     path: '/personal', 

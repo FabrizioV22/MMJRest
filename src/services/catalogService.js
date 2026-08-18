@@ -77,7 +77,7 @@ export const catalogService = {
       if (stockData) {
         const stockMap = new Map(stockData.map(s => [s.producto_id, { stock: Number(s.stock_actual), activo: s.activo }]))
         let mappedData = data.map(p => {
-          const s = stockMap.get(p.id) || { stock: 0, activo: true }
+          const s = stockMap.get(p.id) || { stock: 0, activo: false }
           return {
             ...p,
             stock_actual: s.stock,
@@ -98,6 +98,19 @@ export const catalogService = {
   },
 
   createProduct: async (payload) => {
+    // Si viene con sede_id, utilizamos la función RPC con aislamiento multi-sede
+    if (payload.sede_id) {
+      const { data, error } = await supabase.rpc('rpc_crear_producto_sede', {
+        p_nombre: payload.nombre,
+        p_unidad_medida: payload.unidad_medida,
+        p_categoria_id: payload.categoria_id,
+        p_sede_id: payload.sede_id,
+        p_activar_todas: Boolean(payload.activar_todas)
+      })
+      if (error) throw error
+      return data
+    }
+
     const { data, error } = await supabase.from('productos').insert([payload]).select('*, categorias(nombre)').single()
     if (error) throw error
     return data
