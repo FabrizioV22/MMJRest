@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { Clock, Calendar, Smartphone, RefreshCw } from 'lucide-react'
+import { Clock, Calendar, Smartphone, RefreshCw, ShieldCheck, X, Loader2 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useSede } from '../../context/SedeContext'
 import { useToast } from '../../context/ToastContext'
@@ -409,40 +409,69 @@ export function AsistenciaModule() {
       {/* Modal de Justificación de Tardanza */}
       {justifyItem && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
-          <div className="bg-white rounded-t-3xl sm:rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-[#E9DFD9] animate-in fade-in slide-in-from-bottom-6 sm:zoom-in-95 duration-200">
-            <h3 className="text-sm sm:text-base font-bold text-[#2C211F]">
-              Justificar Asistencia de {justifyItem.nombre}
-            </h3>
-            <p className="text-xs text-[#877571] mt-1">
-              Hora registrada: {justifyItem.horaIngreso} ({justifyItem.minutosTardanza} min de tardanza)
-            </p>
-
-            <div className="mt-4 space-y-2">
-              <label className="block text-xs font-bold text-[#5D4B47] uppercase tracking-wider">
-                Motivo / Justificación
-              </label>
-              <textarea
-                value={justifyObs}
-                onChange={(e) => setJustifyObs(e.target.value)}
-                placeholder="Ej: Permiso médico autorizado / Apoyo en compras"
-                rows={3}
-                className="w-full px-3 py-2.5 bg-[#FAF7F4] border border-[#D8CBC5] rounded-xl text-xs text-[#2C211F] outline-none resize-none font-medium shadow-2xs"
-              />
-            </div>
-
-            <div className="mt-6 flex justify-end space-x-2.5">
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl max-w-md w-full shadow-2xl border border-[#E9DFD9] animate-in fade-in slide-in-from-bottom-6 sm:zoom-in-95 duration-200 overflow-hidden flex flex-col max-h-[90dvh] sm:max-h-[85vh]">
+            {/* Cabecera */}
+            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-[#E9DFD9] shrink-0 bg-white">
+              <div className="flex items-center space-x-3">
+                <div className="p-2.5 bg-blue-50 text-blue-800 rounded-xl border border-blue-200 shrink-0">
+                  <ShieldCheck size={22} />
+                </div>
+                <div>
+                  <h3 className="text-sm sm:text-base font-bold text-[#2C211F] leading-tight">
+                    Justificar Asistencia
+                  </h3>
+                  <p className="text-[11px] text-[#877571] mt-0.5">
+                    {justifyItem.nombre} • Llegó {justifyItem.horaIngreso || '—'} (+{justifyItem.minutosTardanza}m)
+                  </p>
+                </div>
+              </div>
               <button
                 onClick={() => setJustifyItem(null)}
-                className="flex-1 sm:flex-none px-4 py-2.5 text-xs font-semibold text-[#5D4B47] hover:bg-[#FAF7F4] rounded-xl border border-[#D8CBC5] cursor-pointer transition-colors"
+                className="p-2 text-[#877571] hover:bg-[#FAF7F4] rounded-full cursor-pointer transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Cuerpo */}
+            <div className="p-4 sm:p-5 space-y-3 overflow-y-auto flex-1 overscroll-contain">
+              <div>
+                <label className="block text-xs font-bold text-[#5D4B47] uppercase tracking-wider mb-1.5">
+                  Motivo / Observación de la Justificación
+                </label>
+                <textarea
+                  value={justifyObs}
+                  onChange={(e) => setJustifyObs(e.target.value)}
+                  placeholder="Ej: Permiso médico autorizado por gerencia / Apoyo en compras fuera del local"
+                  rows={4}
+                  className="w-full px-3.5 py-3 bg-[#FAF7F4] border border-[#D8CBC5] rounded-xl text-xs sm:text-sm text-[#2C211F] outline-none resize-none font-medium shadow-2xs focus:border-[#A80F14]"
+                />
+              </div>
+              <p className="text-[11px] text-[#877571] leading-relaxed">
+                Al guardar la justificación, el estado de puntualidad del colaborador pasará a <strong>«JUSTIFICADO»</strong> en los reportes oficiales.
+              </p>
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 sm:p-5 border-t border-[#E9DFD9] bg-[#FAF7F4] flex items-center space-x-2.5 shrink-0">
+              <button
+                onClick={() => setJustifyItem(null)}
+                disabled={isSubmitting}
+                className="flex-1 py-3 text-xs font-semibold text-[#5D4B47] bg-white hover:bg-gray-50 rounded-xl border border-[#D8CBC5] cursor-pointer transition-colors"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleSaveJustification}
                 disabled={isSubmitting || !justifyObs.trim()}
-                className="flex-1 sm:flex-none px-5 py-2.5 text-xs font-bold text-white bg-[#A80F14] hover:bg-[#7F0C10] disabled:opacity-40 rounded-xl cursor-pointer shadow-md transition-all"
+                className="flex-1 py-3 text-xs font-bold text-white bg-[#A80F14] hover:bg-[#7F0C10] disabled:opacity-40 rounded-xl cursor-pointer shadow-md transition-all flex items-center justify-center space-x-1.5"
               >
-                Guardar Justificación
+                {isSubmitting ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <ShieldCheck size={16} />
+                )}
+                <span>{isSubmitting ? 'Guardando...' : 'Confirmar Justificación'}</span>
               </button>
             </div>
           </div>

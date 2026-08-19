@@ -724,8 +724,8 @@ export function CatalogModule() {
 
       {/* MODAL ARCHIVAR / ELIMINAR */}
       {itemToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 text-center animate-fade-in-up border border-[#E9DFD9]">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-xs p-0 sm:p-4">
+          <div className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-sm p-6 sm:p-8 text-center animate-in fade-in slide-in-from-bottom-6 sm:zoom-in-95 border border-[#E9DFD9]">
             {deleteType === 'PRODUCT' ? (
               <Archive className="text-[#B45309] w-12 h-12 mx-auto mb-4 bg-amber-50 p-2.5 rounded-2xl border border-amber-200" />
             ) : deleteType === 'PRODUCT_RESTORE' ? (
@@ -733,10 +733,10 @@ export function CatalogModule() {
             ) : (
               <Trash2 className="text-[#B42318] w-12 h-12 mx-auto mb-4 bg-rose-50 p-2.5 rounded-2xl border border-rose-200" />
             )}
-            <h3 className="text-xl font-bold text-[#2C211F]">
+            <h3 className="text-lg sm:text-xl font-bold text-[#2C211F]">
               {deleteType === 'PRODUCT' ? 'Archivar Producto' : deleteType === 'PRODUCT_RESTORE' ? 'Restaurar Producto' : `Eliminar ${deleteType === 'AREA' ? 'Área' : 'Categoría'}`}?
             </h3>
-            <p className="text-[#5D4B47] text-sm mt-2 mb-6 leading-relaxed">
+            <p className="text-[#5D4B47] text-xs sm:text-sm mt-2 mb-6 leading-relaxed">
               {deleteType === 'PRODUCT' ? (
                 <><strong className="text-[#2C211F]">{itemToDelete.nombre}</strong> se ocultará del inventario de tu sede pero conservará su historial.</>
               ) : deleteType === 'PRODUCT_RESTORE' ? (
@@ -746,8 +746,8 @@ export function CatalogModule() {
               )}
             </p>
             <div className="flex gap-3">
-              <button onClick={cancelView} disabled={isSubmitting} className="flex-1 px-4 py-2.5 border border-[#D8CBC5] rounded-xl hover:bg-[#FAF7F4] font-medium cursor-pointer text-sm text-[#5D4B47]">Cancelar</button>
-              <button onClick={handleDelete} disabled={isSubmitting} className={`flex-1 px-4 py-2.5 text-white rounded-xl font-bold flex justify-center cursor-pointer text-sm transition-all ${deleteType === 'PRODUCT' ? 'bg-[#B45309] hover:bg-amber-700' : deleteType === 'PRODUCT_RESTORE' ? 'bg-[#15803D] hover:bg-emerald-800' : 'bg-[#B42318] hover:bg-rose-800'}`}>
+              <button onClick={cancelView} disabled={isSubmitting} className="flex-1 py-3 border border-[#D8CBC5] rounded-xl hover:bg-[#FAF7F4] font-semibold cursor-pointer text-xs sm:text-sm text-[#5D4B47] transition-colors">Cancelar</button>
+              <button onClick={handleDelete} disabled={isSubmitting} className={`flex-1 py-3 text-white rounded-xl font-bold flex justify-center items-center cursor-pointer text-xs sm:text-sm shadow-md transition-all ${deleteType === 'PRODUCT' ? 'bg-[#B45309] hover:bg-amber-700' : deleteType === 'PRODUCT_RESTORE' ? 'bg-[#15803D] hover:bg-emerald-800' : 'bg-[#B42318] hover:bg-rose-800'}`}>
                 {isSubmitting ? <Loader2 className="animate-spin" size={16} /> : (deleteType === 'PRODUCT' ? 'Archivar' : deleteType === 'PRODUCT_RESTORE' ? 'Restaurar' : 'Eliminar')}
               </button>
             </div>
@@ -757,27 +757,27 @@ export function CatalogModule() {
 
       {/* MODAL TRANSACCIÓN KARDEX */}
       {viewState === 'TX_MODAL' && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md animate-fade-in-up overflow-hidden border border-[#E9DFD9]">
-            <div className={`p-6 border-b flex justify-between items-center ${txType === 'INGRESO' ? 'bg-emerald-50 border-emerald-100' : 'bg-rose-50 border-rose-100'}`}>
-              <h3 className={`text-xl font-black flex items-center ${txType === 'INGRESO' ? 'text-[#15803D]' : 'text-[#B42318]'}`}>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-xs p-0 sm:p-4">
+          <div className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-md animate-in fade-in slide-in-from-bottom-6 sm:zoom-in-95 overflow-hidden border border-[#E9DFD9] max-h-[92dvh] sm:max-h-[90vh] flex flex-col">
+            <div className={`p-5 sm:p-6 border-b flex justify-between items-center shrink-0 ${txType === 'INGRESO' ? 'bg-emerald-50 border-emerald-100' : 'bg-rose-50 border-rose-100'}`}>
+              <h3 className={`text-base sm:text-xl font-black flex items-center ${txType === 'INGRESO' ? 'text-[#15803D]' : 'text-[#B42318]'}`}>
                 {txType === 'INGRESO' ? <ArrowDownCircle className="mr-2"/> : <ArrowUpCircle className="mr-2"/>} Registrar {txType}
               </h3>
-              <button onClick={cancelView} aria-label="Cerrar modal" title="Cerrar" className="p-2 cursor-pointer rounded-lg hover:bg-black/5 text-[#5D4B47]"><X size={20} /></button>
+              <button onClick={cancelView} aria-label="Cerrar modal" title="Cerrar" className="p-2 cursor-pointer rounded-full hover:bg-black/5 text-[#5D4B47] transition-colors"><X size={20} /></button>
             </div>
-            <div className="p-6 space-y-5">
+            <div className="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1 overscroll-contain">
               <div>
                 <label className="block text-xs font-bold text-[#5D4B47] uppercase tracking-wider mb-2">Cantidad a {txType === 'INGRESO' ? 'sumar al stock' : 'restar del stock'}</label>
-                <input type="number" inputMode="decimal" step="0.01" min="0" aria-label="Cantidad de movimiento" value={txAmount} onChange={e => setTxAmount(e.target.value)} autoFocus className="w-full px-5 py-4 bg-[#FAF7F4] border-2 border-[#D8CBC5] rounded-2xl outline-none text-3xl font-black text-center focus:border-[#A80F14] text-[#2C211F] min-h-[44px]" />
+                <input type="number" inputMode="decimal" step="0.01" min="0" aria-label="Cantidad de movimiento" value={txAmount} onChange={e => setTxAmount(e.target.value)} autoFocus className="w-full px-5 py-3.5 bg-[#FAF7F4] border-2 border-[#D8CBC5] rounded-2xl outline-none text-2xl sm:text-3xl font-black text-center focus:border-[#A80F14] text-[#2C211F] min-h-[44px] shadow-2xs" />
               </div>
               <div>
                 <label className="block text-xs font-bold text-[#5D4B47] uppercase tracking-wider mb-2">Observación (Opcional)</label>
-                <textarea value={txObs} onChange={e => setTxObs(e.target.value)} placeholder="Ej: Compra proveedor / Merma cocina" className="w-full px-4 py-3 bg-[#FAF7F4] border border-[#D8CBC5] rounded-xl outline-none resize-none h-20 text-sm text-[#2C211F]" />
+                <textarea value={txObs} onChange={e => setTxObs(e.target.value)} placeholder="Ej: Compra proveedor / Merma cocina" className="w-full px-4 py-3 bg-[#FAF7F4] border border-[#D8CBC5] rounded-xl outline-none resize-none h-20 text-xs sm:text-sm text-[#2C211F] shadow-2xs" />
               </div>
             </div>
-            <div className="p-5 border-t border-[#E9DFD9] bg-[#FAF7F4] flex gap-3">
-              <button onClick={cancelView} disabled={isSubmitting} className="flex-1 py-3 bg-white border border-[#D8CBC5] rounded-2xl font-bold cursor-pointer hover:bg-[#FAF7F4] text-sm text-[#5D4B47]">Cancelar</button>
-              <button onClick={handleSaveTransaction} disabled={isSubmitting} className={`flex-1 py-3 text-white rounded-2xl font-black cursor-pointer text-sm shadow-md transition-all ${txType === 'INGRESO' ? 'bg-[#15803D] hover:bg-emerald-800' : 'bg-[#B42318] hover:bg-rose-800'}`}>
+            <div className="p-4 sm:p-5 border-t border-[#E9DFD9] bg-[#FAF7F4] flex gap-2.5 shrink-0">
+              <button onClick={cancelView} disabled={isSubmitting} className="flex-1 py-3 bg-white border border-[#D8CBC5] rounded-xl font-bold cursor-pointer hover:bg-gray-50 text-xs sm:text-sm text-[#5D4B47] transition-colors">Cancelar</button>
+              <button onClick={handleSaveTransaction} disabled={isSubmitting} className={`flex-1 py-3 text-white rounded-xl font-black cursor-pointer text-xs sm:text-sm shadow-md transition-all flex items-center justify-center ${txType === 'INGRESO' ? 'bg-[#15803D] hover:bg-emerald-800' : 'bg-[#B42318] hover:bg-rose-800'}`}>
                 {isSubmitting ? <Loader2 className="animate-spin mx-auto" size={18} /> : 'Confirmar'}
               </button>
             </div>
