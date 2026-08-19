@@ -116,7 +116,7 @@ export function ShiftSchedulerModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
       <div className="bg-white rounded-t-3xl sm:rounded-2xl max-w-3xl w-full shadow-2xl border border-[#E9DFD9] animate-in fade-in slide-in-from-bottom-6 sm:zoom-in-95 duration-200 h-[92dvh] sm:h-auto sm:max-h-[90vh] flex flex-col overflow-hidden">
         
         {/* Header Fijo */}
@@ -143,7 +143,7 @@ export function ShiftSchedulerModal({
         </div>
 
         {/* Cuerpo con Scroll Fluido para Mobile */}
-        <div className="overflow-y-auto flex-1 p-4 sm:p-6 space-y-5 overscroll-contain">
+        <div className="overflow-y-auto flex-1 p-4 sm:p-6 pb-12 sm:pb-6 space-y-5 overscroll-contain">
           
           {/* Formulario de Asignación Rápida / Masiva */}
           <form onSubmit={handleBatchSave} className="p-4 sm:p-5 bg-[#FAF7F4] rounded-2xl border border-[#E9DFD9] space-y-4">

@@ -408,8 +408,8 @@ export function AsistenciaModule() {
 
       {/* Modal de Justificación de Tardanza */}
       {justifyItem && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
-          <div className="bg-white rounded-t-3xl sm:rounded-2xl max-w-md w-full shadow-2xl border border-[#E9DFD9] animate-in fade-in slide-in-from-bottom-6 sm:zoom-in-95 duration-200 overflow-hidden flex flex-col max-h-[90dvh] sm:max-h-[85vh]">
+        <div className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl max-w-md w-full shadow-2xl border border-[#E9DFD9] animate-in fade-in slide-in-from-bottom-6 sm:zoom-in-95 duration-200 overflow-hidden flex flex-col max-h-[92dvh] sm:max-h-[85vh]">
             {/* Cabecera */}
             <div className="flex items-center justify-between p-4 sm:p-5 border-b border-[#E9DFD9] shrink-0 bg-white">
               <div className="flex items-center space-x-3">
@@ -452,8 +452,8 @@ export function AsistenciaModule() {
               </p>
             </div>
 
-            {/* Footer */}
-            <div className="p-4 sm:p-5 border-t border-[#E9DFD9] bg-[#FAF7F4] flex items-center space-x-2.5 shrink-0">
+            {/* Footer con elevación táctil en móvil */}
+            <div className="p-4 sm:p-5 pb-8 sm:pb-5 border-t border-[#E9DFD9] bg-[#FAF7F4] flex items-center space-x-2.5 shrink-0">
               <button
                 onClick={() => setJustifyItem(null)}
                 disabled={isSubmitting}

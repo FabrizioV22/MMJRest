@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { LogOut, MapPin, ChevronLeft } from 'lucide-react'
+import { LogOut, MapPin, ChevronLeft, MoreHorizontal, X, ChevronRight, Shield } from 'lucide-react'
 import { authService } from '../services/authService'
 import { useAuth } from '../context/AuthContext'
 import { useSede } from '../context/SedeContext'
@@ -17,6 +17,9 @@ export function Layout({ children }) {
     return localStorage.getItem('sidebar_collapsed') === 'true'
   })
 
+  // Estado del menú "Más" en Mobile
+  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false)
+
   const toggleSidebar = () => {
     setIsCollapsed(prev => {
       const next = !prev
@@ -25,7 +28,13 @@ export function Layout({ children }) {
     })
   }
 
-  const navItems = APP_ROUTES.filter(route => route.allowedRoles.some(r => userRoles.includes(r)))
+  const allNavItems = APP_ROUTES.filter(route => route.allowedRoles.some(r => userRoles.includes(r)))
+
+  // UX Best Practice: Bottom Nav móvil con máximo 5 destinos
+  const hasMoreMenu = allNavItems.length > 5
+  const primaryNavItems = hasMoreMenu ? allNavItems.slice(0, 4) : allNavItems
+  const secondaryNavItems = hasMoreMenu ? allNavItems.slice(4) : []
+  const isMoreActive = secondaryNavItems.some(item => location.pathname === item.path)
 
   return (
     <div className="flex h-screen flex-col md:flex-row overflow-hidden" style={{ backgroundColor: '#FAF7F4' }}>
@@ -41,12 +50,15 @@ export function Layout({ children }) {
           onClick={toggleSidebar}
           title={isCollapsed ? "Expandir menú" : "Colapsar menú"}
           aria-label={isCollapsed ? "Expandir menú" : "Colapsar menú"}
-          className="absolute -right-3.5 top-7 z-50 bg-[#2C211F] text-[#E7C77A] hover:text-white border border-[#5D4B47]/60 p-1.5 rounded-full shadow-md transition-all duration-300 hover:scale-110 cursor-pointer"
+          className="absolute -right-3.5 top-7 z-40 bg-[#2C211F] text-[#E7C77A] hover:text-white border border-[#5D4B47]/60 p-1.5 rounded-full shadow-md transition-all duration-300 hover:scale-110 cursor-pointer"
         >
-          <ChevronLeft size={14} className={`transition-transform duration-300 ease-in-out ${isCollapsed ? 'rotate-180' : 'rotate-0'}`} />
+          <ChevronLeft 
+            size={16} 
+            className={`transition-transform duration-300 ${isCollapsed ? 'rotate-180' : 'rotate-0'}`} 
+          />
         </button>
 
-        {/* Brand / Logo - Animación suave de texto */}
+        {/* Header con Identidad Gastronómica Mama Julia */}
         <div className="p-4 border-b border-[#3A0F0F]/60 flex items-center justify-between h-20 overflow-hidden">
           <div className="flex items-center space-x-3 min-w-0">
             <div className="w-10 h-10 bg-[#3A0F0F] border border-[#D6A24A]/40 rounded-xl flex items-center justify-center font-display font-black text-[#E7C77A] text-lg shadow-inner shrink-0">
@@ -80,7 +92,7 @@ export function Layout({ children }) {
         
         {/* Navegación Principal con Transición Suave de Texto */}
         <nav className="flex-1 p-3 space-y-1.5 overflow-y-auto overflow-x-hidden">
-          {navItems.map((item) => {
+          {allNavItems.map((item) => {
             const isActive = location.pathname === item.path
             return (
               <Link
@@ -126,9 +138,9 @@ export function Layout({ children }) {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto pb-20 md:pb-0 relative">
+      <main className="flex-1 overflow-y-auto pb-24 md:pb-0 relative">
         {/* Header Superior Móvil */}
-        <div style={{ backgroundColor: '#211716' }} className="md:hidden sticky top-0 z-40 text-white border-b border-[#3A0F0F]/60 p-3.5 flex justify-between items-center shadow-md">
+        <div style={{ backgroundColor: '#211716' }} className="md:hidden sticky top-0 z-30 text-white border-b border-[#3A0F0F]/60 p-3.5 flex justify-between items-center shadow-md">
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-[#3A0F0F] border border-[#D6A24A]/40 rounded-lg flex items-center justify-center font-display font-black text-[#E7C77A] text-xs">
               MJ
@@ -169,27 +181,111 @@ export function Layout({ children }) {
         </div>
       </main>
 
-      {/* Bottom Navigation para Móvil */}
-      <nav style={{ backgroundColor: '#211716' }} className="md:hidden fixed bottom-0 left-0 right-0 border-t border-[#3A0F0F]/60 flex justify-around py-2 px-2 z-50 shadow-2xl">
-        {navItems.map((item) => {
+      {/* 📱 Bottom Navigation para Móvil (Máximo 5 pestañas según UX) */}
+      <nav style={{ backgroundColor: '#211716' }} className="md:hidden fixed bottom-0 left-0 right-0 border-t border-[#3A0F0F]/60 flex justify-around items-center py-2 px-1 z-40 shadow-2xl safe-area-pb">
+        {primaryNavItems.map((item) => {
           const isActive = location.pathname === item.path
           return (
             <Link
               key={item.name}
               to={item.path}
-              className={`flex flex-col items-center justify-center flex-1 py-1.5 space-y-1 rounded-xl cursor-pointer transition-all ${
+              className={`flex flex-col items-center justify-center flex-1 py-1 px-0.5 rounded-xl cursor-pointer transition-all ${
                 isActive 
                   ? 'text-[#C61B20] font-bold' 
                   : 'text-[#D8CBC5] hover:text-[#FFF9F0]'
               }`}
             >
-              <item.icon size={21} strokeWidth={isActive ? 2.5 : 1.75} />
-              <span className="text-[10px] tracking-wide">{item.name}</span>
-              {isActive && <span className="w-3 h-0.5 bg-[#D6A24A] rounded-full"></span>}
+              <item.icon size={20} strokeWidth={isActive ? 2.5 : 1.75} />
+              <span className="text-[10px] tracking-tight mt-0.5 truncate">{item.name}</span>
+              {isActive && <span className="w-2.5 h-0.5 bg-[#D6A24A] rounded-full mt-0.5"></span>}
             </Link>
           )
         })}
+
+        {/* 5ta Pestaña: "Más" (Abre Drawer con opciones secundarias) */}
+        {hasMoreMenu && (
+          <button
+            onClick={() => setIsMoreMenuOpen(true)}
+            className={`flex flex-col items-center justify-center flex-1 py-1 px-0.5 rounded-xl cursor-pointer transition-all ${
+              isMoreActive 
+                ? 'text-[#C61B20] font-bold' 
+                : 'text-[#D8CBC5] hover:text-[#FFF9F0]'
+            }`}
+          >
+            <MoreHorizontal size={20} strokeWidth={isMoreActive ? 2.5 : 1.75} />
+            <span className="text-[10px] tracking-tight mt-0.5">Más</span>
+            {isMoreActive && <span className="w-2.5 h-0.5 bg-[#D6A24A] rounded-full mt-0.5"></span>}
+          </button>
+        )}
       </nav>
+
+      {/* 📱 Bottom Sheet: Menú "Más" Móvil */}
+      {isMoreMenuOpen && (
+        <div className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-xs flex items-end justify-center animate-in fade-in duration-200">
+          <div className="bg-[#211716] border-t border-[#3A0F0F] text-[#FFF9F0] rounded-t-3xl w-full max-w-lg p-5 space-y-4 shadow-2xl animate-in slide-in-from-bottom-8 duration-200 max-h-[85dvh] flex flex-col pb-8">
+            
+            {/* Header del Bottom Sheet */}
+            <div className="flex items-center justify-between pb-3 border-b border-[#3A0F0F]/80 shrink-0">
+              <div className="flex items-center space-x-2.5">
+                <div className="w-7 h-7 bg-[#3A0F0F] border border-[#D6A24A]/40 rounded-lg flex items-center justify-center font-display font-black text-[#E7C77A] text-xs">
+                  MJ
+                </div>
+                <h3 className="text-sm font-bold text-[#FFF9F0]">Más Módulos y Opciones</h3>
+              </div>
+              <button
+                onClick={() => setIsMoreMenuOpen(false)}
+                className="p-1.5 text-[#D8CBC5] hover:bg-white/10 rounded-full cursor-pointer transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Lista de Rutas Secundarias */}
+            <div className="space-y-2 overflow-y-auto flex-1 overscroll-contain">
+              {secondaryNavItems.map((item) => {
+                const isActive = location.pathname === item.path
+                return (
+                  <Link
+                    key={item.name}
+                    to={item.path}
+                    onClick={() => setIsMoreMenuOpen(false)}
+                    className={`flex items-center justify-between p-3.5 rounded-2xl border transition-all cursor-pointer ${
+                      isActive
+                        ? 'bg-[#A80F14] border-[#D6A24A]/50 text-white font-bold shadow-md'
+                        : 'bg-[#2C211F]/70 border-[#3A0F0F] text-[#D8CBC5] hover:bg-[#3A0F0F] hover:text-white'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className={`p-2 rounded-xl ${isActive ? 'bg-white/20' : 'bg-[#3A0F0F]'}`}>
+                        <item.icon size={18} className={isActive ? 'text-white' : 'text-[#D6A24A]'} />
+                      </div>
+                      <div>
+                        <div className="text-sm font-bold">{item.name}</div>
+                        <div className="text-[11px] text-[#877571]">Módulo operativo del restaurante</div>
+                      </div>
+                    </div>
+                    <ChevronRight size={16} className="text-[#877571]" />
+                  </Link>
+                )
+              })}
+            </div>
+
+            {/* Acciones de Cuenta */}
+            <div className="pt-2 border-t border-[#3A0F0F]/80 shrink-0 flex gap-2">
+              <button
+                onClick={() => {
+                  setIsMoreMenuOpen(false)
+                  authService.logout()
+                }}
+                className="w-full py-3 px-4 bg-rose-950/40 hover:bg-rose-900/50 text-rose-300 border border-rose-800/40 rounded-xl text-xs font-bold flex items-center justify-center space-x-2 cursor-pointer transition-all"
+              >
+                <LogOut size={16} />
+                <span>Cerrar Sesión</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

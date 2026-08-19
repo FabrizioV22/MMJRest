@@ -7,7 +7,7 @@ export function PrivacyConsentModal({ isOpen, onAccept, onDecline, isSubmitting 
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
       <div className="bg-white rounded-t-3xl sm:rounded-2xl max-w-lg w-full shadow-2xl border border-[#E9DFD9] animate-in fade-in slide-in-from-bottom-6 sm:zoom-in-95 duration-200 h-[88dvh] sm:h-auto sm:max-h-[90vh] flex flex-col overflow-hidden">
         
         {/* Header Fijo */}
