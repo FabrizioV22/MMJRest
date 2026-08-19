@@ -157,10 +157,17 @@ export const asistenciaService = {
    * Registra la aceptación del consentimiento de geolocalización
    */
   aceptarConsentimientoGps: async (usuarioId) => {
+    let uid = usuarioId
+    if (!uid) {
+      const { data: authData } = await supabase.auth.getUser()
+      uid = authData?.user?.id
+    }
+    if (!uid) throw new Error('Usuario no autenticado.')
+
     const { data, error } = await supabase
       .from('usuarios')
       .update({ consentimiento_gps_at: new Date().toISOString() })
-      .eq('id', usuarioId)
+      .eq('id', uid)
       .select()
       .single()
 
@@ -172,10 +179,17 @@ export const asistenciaService = {
    * Actualiza el PIN de asistencia de un usuario
    */
   guardarPinAsistencia: async (usuarioId, pin) => {
+    let uid = usuarioId
+    if (!uid) {
+      const { data: authData } = await supabase.auth.getUser()
+      uid = authData?.user?.id
+    }
+    if (!uid) throw new Error('Usuario no autenticado.')
+
     const { data, error } = await supabase
       .from('usuarios')
       .update({ pin_asistencia: pin })
-      .eq('id', usuarioId)
+      .eq('id', uid)
       .select()
       .single()
 

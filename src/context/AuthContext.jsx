@@ -61,8 +61,14 @@ export const AuthProvider = ({ children }) => {
     )
   }
 
+  const refreshProfile = async () => {
+    if (session?.user?.id) {
+      await loadUserProfile(session.user.id)
+    }
+  }
+
   return (
-    <AuthContext.Provider value={{ session, userProfile, isAdmin: userProfile?.roles?.includes('ADMIN') }}>
+    <AuthContext.Provider value={{ session, userProfile, setUserProfile, refreshProfile, isAdmin: userProfile?.roles?.includes('ADMIN') }}>
       {children}
     </AuthContext.Provider>
   )

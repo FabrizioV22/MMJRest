@@ -11,7 +11,7 @@ import { PrivacyConsentModal } from './components/PrivacyConsentModal'
 import { ShiftSchedulerModal } from './components/ShiftSchedulerModal'
 
 export function AsistenciaModule() {
-  const { userProfile } = useAuth()
+  const { userProfile, setUserProfile, refreshProfile } = useAuth()
   const { activeSede } = useSede()
   const toast = useToast()
 
@@ -188,11 +188,17 @@ export function AsistenciaModule() {
   const handleAcceptConsent = async () => {
     setIsSubmitting(true)
     try {
-      await asistenciaService.aceptarConsentimientoGps(userProfile.id)
+      const updated = await asistenciaService.aceptarConsentimientoGps(userProfile?.id)
+      if (setUserProfile && updated) {
+        setUserProfile(prev => ({ ...prev, consentimiento_gps_at: updated.consentimiento_gps_at }))
+      } else if (refreshProfile) {
+        await refreshProfile()
+      }
       toast.success('Consentimiento de geolocalización registrado.')
       setIsConsentOpen(false)
     } catch (err) {
-      toast.error('Error guardando consentimiento.')
+      console.error('Error guardando consentimiento:', err)
+      toast.error(err.message || 'Error guardando consentimiento.')
     } finally {
       setIsSubmitting(false)
     }
