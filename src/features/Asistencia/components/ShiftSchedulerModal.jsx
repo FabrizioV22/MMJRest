@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react'
-import { X, Calendar, Plus, Trash2, Loader2, Clock, Check, Users, Sparkles } from 'lucide-react'
+import { X, Calendar, Plus, Trash2, Loader2, Clock, Check, Sparkles } from 'lucide-react'
 
 const DIAS_SEMANA = [
   { id: 1, label: 'Lunes', short: 'Lun' },
@@ -18,6 +18,16 @@ const PRESET_TEMPLATES = [
   { label: 'Cocina (07:30 - 16:00)', ingreso: '07:30', salida: '16:00', tol: 5 }
 ]
 
+function normalizeUser(userCandidate, fallbackUid) {
+  if (!userCandidate) return { id: fallbackUid || 'unknown', nombre_completo: 'Colaborador', roles: ['Personal'] }
+  const raw = Array.isArray(userCandidate) ? userCandidate[0] : userCandidate
+  return {
+    id: raw?.id || fallbackUid || 'unknown',
+    nombre_completo: typeof raw?.nombre_completo === 'string' ? raw.nombre_completo : 'Colaborador',
+    roles: Array.isArray(raw?.roles) ? raw.roles : ['Personal']
+  }
+}
+
 export function ShiftSchedulerModal({
   isOpen,
   onClose,
@@ -28,12 +38,38 @@ export function ShiftSchedulerModal({
   onDeleteShift,
   isSubmitting = false
 }) {
+  const userList = useMemo(() => (Array.isArray(users) ? users : []), [users])
+  const shiftList = useMemo(() => (Array.isArray(shifts) ? shifts : []), [shifts])
+
   const [selectedUser, setSelectedUser] = useState('') // '' o 'ALL' o userId
   const [selectedDays, setSelectedDays] = useState([1, 2, 3, 4, 5, 6]) // Default: Lun-Sáb
   const [horaIngreso, setHoraIngreso] = useState('08:00')
   const [horaSalida, setHoraSalida] = useState('16:30')
   const [tolerancia, setTolerancia] = useState(10)
   const [filterUser, setFilterUser] = useState('ALL')
+
+  // Agrupar turnos por colaborador para una vista limpia y segura
+  const groupedShifts = useMemo(() => {
+    const map = new Map()
+    shiftList.forEach((s) => {
+      if (!s) return
+      const uid = s.usuario_id || 'unknown'
+      if (!map.has(uid)) {
+        const foundUser = s.usuarios || userList.find((u) => u.id === uid)
+        map.set(uid, {
+          usuario: normalizeUser(foundUser, uid),
+          shifts: []
+        })
+      }
+      map.get(uid).shifts.push(s)
+    })
+
+    let list = Array.from(map.values())
+    if (filterUser !== 'ALL') {
+      list = list.filter((g) => g.usuario?.id === filterUser)
+    }
+    return list
+  }, [shiftList, userList, filterUser])
 
   if (!isOpen) return null
 
@@ -59,7 +95,7 @@ export function ShiftSchedulerModal({
     e.preventDefault()
     if (!selectedUser || selectedDays.length === 0 || !horaIngreso || !horaSalida) return
 
-    const targetUsers = selectedUser === 'ALL' ? users.map((u) => u.id) : [selectedUser]
+    const targetUsers = selectedUser === 'ALL' ? userList.map((u) => u.id) : [selectedUser]
     const payloads = []
 
     targetUsers.forEach((uid) => {
@@ -79,27 +115,6 @@ export function ShiftSchedulerModal({
     await onSaveShift(payloads)
   }
 
-  // Agrupar turnos por colaborador para una vista limpia
-  const groupedShifts = useMemo(() => {
-    const map = new Map()
-    shifts.forEach((s) => {
-      const uid = s.usuario_id
-      if (!map.has(uid)) {
-        map.set(uid, {
-          usuario: s.usuarios || users.find((u) => u.id === uid),
-          shifts: []
-        })
-      }
-      map.get(uid).shifts.push(s)
-    })
-
-    let list = Array.from(map.values())
-    if (filterUser !== 'ALL') {
-      list = list.filter((g) => g.usuario?.id === filterUser)
-    }
-    return list
-  }, [shifts, users, filterUser])
-
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl max-w-3xl w-full p-6 shadow-2xl border border-[#E9DFD9] animate-in fade-in zoom-in-95 duration-200 max-h-[92vh] flex flex-col">
@@ -114,7 +129,7 @@ export function ShiftSchedulerModal({
                 Gestor Masivo de Turnos y Horarios Semanales
               </h3>
               <p className="text-xs text-[#877571]">
-                Sede Activa: <strong className="text-[#A80F14]">{activeSede?.nombre || 'General'}</strong> — Los turnos configurados se aplican automáticamente todas las semanas.
+                Sede Activa: <strong className="text-[#A80F14]">{activeSede?.nombre || 'General'}</strong> — Los turnos configurados se repiten automáticamente cada semana.
               </p>
             </div>
           </div>
@@ -163,9 +178,11 @@ export function ShiftSchedulerModal({
                 className="w-full px-3 py-2 bg-white border border-[#D8CBC5] rounded-xl text-xs text-[#2C211F] font-medium outline-none cursor-pointer"
               >
                 <option value="">Selecciona destinatario</option>
-                <option value="ALL">👥 Toda la sede ({users.length} colaboradores)</option>
+                {userList.length > 0 && (
+                  <option value="ALL">👥 Toda la sede ({userList.length} colaboradores)</option>
+                )}
                 <optgroup label="Colaboradores Individuales">
-                  {users.map((u) => (
+                  {userList.map((u) => (
                     <option key={u.id} value={u.id}>
                       {u.nombre_completo || u.id} ({u.roles?.[0] || 'Personal'})
                     </option>
@@ -288,7 +305,7 @@ export function ShiftSchedulerModal({
               )}
               <span>
                 {selectedUser === 'ALL'
-                  ? `Guardar Turnos para ${users.length} Colaboradores (${selectedDays.length * users.length} turnos)`
+                  ? `Guardar Turnos para ${userList.length} Colaboradores (${selectedDays.length * userList.length} turnos)`
                   : `Guardar Turno Semanal (${selectedDays.length} días)`}
               </span>
             </button>
@@ -299,16 +316,16 @@ export function ShiftSchedulerModal({
         <div className="mt-4 flex-1 overflow-y-auto pr-1">
           <div className="flex items-center justify-between mb-2">
             <div className="text-xs font-bold text-[#5D4B47] uppercase tracking-wider">
-              Turnos Configurados en Sede ({shifts.length} asignaciones)
+              Turnos Configurados en Sede ({shiftList.length} asignaciones)
             </div>
-            {users.length > 0 && (
+            {userList.length > 0 && (
               <select
                 value={filterUser}
                 onChange={(e) => setFilterUser(e.target.value)}
                 className="px-2.5 py-1 bg-[#FAF7F4] border border-[#D8CBC5] rounded-lg text-xs text-[#5D4B47] font-medium outline-none cursor-pointer"
               >
                 <option value="ALL">Ver todos los colaboradores</option>
-                {users.map((u) => (
+                {userList.map((u) => (
                   <option key={u.id} value={u.id}>
                     {u.nombre_completo || u.id}
                   </option>
@@ -323,17 +340,22 @@ export function ShiftSchedulerModal({
             </div>
           ) : (
             <div className="space-y-2.5">
-              {groupedShifts.map((group) => {
+              {groupedShifts.map((group, idx) => {
                 const u = group.usuario
+                const initialLetter = (u?.nombre_completo || 'U').charAt(0).toUpperCase()
+                const sortedShifts = [...(group.shifts || [])].sort(
+                  (a, b) => (a.dia_semana === 0 ? 7 : a.dia_semana) - (b.dia_semana === 0 ? 7 : b.dia_semana)
+                )
+
                 return (
                   <div
-                    key={u?.id || Math.random()}
+                    key={u?.id || `group-${idx}`}
                     className="p-3.5 bg-white border border-[#E9DFD9] rounded-xl hover:border-[#D8CBC5] transition-all shadow-xs"
                   >
                     <div className="flex items-center justify-between mb-2 pb-2 border-b border-[#FAF7F4]">
                       <div className="flex items-center space-x-2">
                         <div className="w-7 h-7 rounded-full bg-[#FAF7F4] border border-[#D8CBC5] flex items-center justify-center text-xs font-bold text-[#A80F14]">
-                          {(u?.nombre_completo || 'U').charAt(0).toUpperCase()}
+                          {initialLetter}
                         </div>
                         <div>
                           <div className="text-xs font-bold text-[#2C211F]">
@@ -345,42 +367,41 @@ export function ShiftSchedulerModal({
                         </div>
                       </div>
                       <span className="text-[11px] font-semibold text-[#877571]">
-                        {group.shifts.length} días configurados
+                        {sortedShifts.length} días configurados
                       </span>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                      {group.shifts
-                        .sort((a, b) => (a.dia_semana === 0 ? 7 : a.dia_semana) - (b.dia_semana === 0 ? 7 : b.dia_semana))
-                        .map((s) => {
-                          const dia = DIAS_SEMANA.find((d) => d.id === s.dia_semana)
-                          return (
-                            <div
-                              key={s.id}
-                              className="p-2 bg-[#FAF7F4] rounded-lg border border-[#E9DFD9] flex items-center justify-between"
-                            >
-                              <div>
-                                <span className="text-[10px] font-bold text-amber-900 bg-amber-100 px-1.5 py-0.5 rounded mr-1.5">
-                                  {dia?.short || 'Día'}
-                                </span>
-                                <span className="text-[11px] font-semibold text-[#2C211F]">
-                                  {s.hora_ingreso?.substring(0, 5)} - {s.hora_salida?.substring(0, 5)}
-                                </span>
-                                <div className="text-[9px] text-[#877571] mt-0.5">
-                                  Tol: {s.tolerancia_minutos || 10}m
-                                </div>
+                      {sortedShifts.map((s) => {
+                        const dia = DIAS_SEMANA.find((d) => d.id === s.dia_semana)
+                        return (
+                          <div
+                            key={s.id || `shift-${s.usuario_id}-${s.dia_semana}`}
+                            className="p-2 bg-[#FAF7F4] rounded-lg border border-[#E9DFD9] flex items-center justify-between"
+                          >
+                            <div>
+                              <span className="text-[10px] font-bold text-amber-900 bg-amber-100 px-1.5 py-0.5 rounded mr-1.5">
+                                {dia?.short || 'Día'}
+                              </span>
+                              <span className="text-[11px] font-semibold text-[#2C211F]">
+                                {s.hora_ingreso?.substring(0, 5)} - {s.hora_salida?.substring(0, 5)}
+                              </span>
+                              <div className="text-[9px] text-[#877571] mt-0.5">
+                                Tol: {s.tolerancia_minutos || 10}m
                               </div>
-
-                              <button
-                                onClick={() => onDeleteShift(s.id)}
-                                title="Eliminar este turno"
-                                className="p-1 text-[#877571] hover:text-rose-600 hover:bg-rose-50 rounded cursor-pointer transition-colors"
-                              >
-                                <Trash2 size={13} />
-                              </button>
                             </div>
-                          )
-                        })}
+
+                            <button
+                              type="button"
+                              onClick={() => onDeleteShift(s.id)}
+                              title="Eliminar este turno"
+                              className="p-1 text-[#877571] hover:text-rose-600 hover:bg-rose-50 rounded cursor-pointer transition-colors"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+                        )
+                      })}
                     </div>
                   </div>
                 )

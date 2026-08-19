@@ -216,33 +216,47 @@ export const asistenciaService = {
    * Obtiene la lista de usuarios activos asignados a una sede
    */
   getUsuariosPorSede: async (sedeId) => {
-    if (!sedeId) {
+    try {
+      if (!sedeId) {
+        const { data, error } = await supabase
+          .from('usuarios')
+          .select('*')
+          .order('nombre_completo', { ascending: true })
+        if (error) throw error
+        return data || []
+      }
+
+      const { data: usuarioSedes, error: errorRel } = await supabase
+        .from('usuario_sedes')
+        .select('usuario_id')
+        .eq('sede_id', sedeId)
+
+      if (errorRel) throw errorRel
+      const uids = (usuarioSedes || []).map(r => r.usuario_id)
+
+      if (uids.length === 0) {
+        // Fallback: Si aún no se asignaron sedes individuales, traer todos los usuarios activos
+        const { data: allUsers, error: errorAll } = await supabase
+          .from('usuarios')
+          .select('*')
+          .order('nombre_completo', { ascending: true })
+        if (errorAll) throw errorAll
+        return allUsers || []
+      }
+
       const { data, error } = await supabase
         .from('usuarios')
         .select('*')
+        .in('id', uids)
         .order('nombre_completo', { ascending: true })
+
       if (error) throw error
       return data || []
+    } catch (e) {
+      console.warn('Fallback cargando todos los usuarios para turnos:', e)
+      const { data } = await supabase.from('usuarios').select('*').order('nombre_completo', { ascending: true })
+      return data || []
     }
-
-    const { data: usuarioSedes, error: errorRel } = await supabase
-      .from('usuario_sedes')
-      .select('usuario_id')
-      .eq('sede_id', sedeId)
-
-    if (errorRel) throw errorRel
-    const uids = (usuarioSedes || []).map(r => r.usuario_id)
-
-    if (uids.length === 0) return []
-
-    const { data, error } = await supabase
-      .from('usuarios')
-      .select('*')
-      .in('id', uids)
-      .order('nombre_completo', { ascending: true })
-
-    if (error) throw error
-    return data || []
   },
 
   /**
