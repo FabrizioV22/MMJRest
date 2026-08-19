@@ -16,18 +16,21 @@ export const AuthProvider = ({ children }) => {
     try {
       const profile = await userService.getCurrentProfile(userId)
       // Si el perfil aún no existe en BD (por delay del trigger), asignamos un rol temporal para no romper la app
-      setUserProfile(profile || { rol: 'PENDIENTE', nombre_completo: 'Usuario Nuevo' })
+      setUserProfile(profile || { roles: ['PENDIENTE'], nombre_completo: 'Usuario Nuevo' })
     } catch (err) {
       console.error("Error cargando perfil:", err)
-      setUserProfile({ rol: 'PENDIENTE', nombre_completo: 'Usuario Sin Perfil' })
+      setUserProfile({ roles: ['PENDIENTE'], nombre_completo: 'Usuario Sin Perfil' })
     }
   }
 
   useEffect(() => {
+    let currentUserId = null;
+
     // 1. Check initial session
     authService.getSession().then(async (sess) => {
       setSession(sess)
       if (sess?.user) {
+        currentUserId = sess.user.id;
         await loadUserProfile(sess.user.id)
       }
       setLoading(false)
@@ -36,10 +39,13 @@ export const AuthProvider = ({ children }) => {
     // 2. Listen for changes
     const { data: { subscription } } = authService.onAuthStateChange(async (sess) => {
       setSession(sess)
-      if (sess?.user) {
-        await loadUserProfile(sess.user.id)
-      } else {
-        setUserProfile(null)
+      if (sess?.user?.id !== currentUserId) {
+        currentUserId = sess?.user?.id;
+        if (currentUserId) {
+          await loadUserProfile(currentUserId)
+        } else {
+          setUserProfile(null)
+        }
       }
       setLoading(false)
     })
@@ -56,7 +62,7 @@ export const AuthProvider = ({ children }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ session, userProfile, isAdmin: userProfile?.rol === 'ADMIN' }}>
+    <AuthContext.Provider value={{ session, userProfile, isAdmin: userProfile?.roles?.includes('ADMIN') }}>
       {children}
     </AuthContext.Provider>
   )

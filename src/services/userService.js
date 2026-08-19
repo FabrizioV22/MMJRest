@@ -18,7 +18,7 @@ export const userService = {
     const { data, error } = await supabase
       .from('usuarios')
       .select('*')
-      .order('fecha_creacion', { ascending: false })
+      .order('created_at', { ascending: false })
     
     if (error) throw error
     return data
@@ -34,5 +34,42 @@ export const userService = {
     
     if (error) throw error
     return data[0]
+  },
+
+  // Obtener las sedes asignadas a un usuario específico
+  getSedesDelUsuario: async (userId) => {
+    const { data, error } = await supabase
+      .from('usuario_sedes')
+      .select(`
+        sede_id,
+        sedes (*)
+      `)
+      .eq('usuario_id', userId)
+    
+    if (error) throw error
+    return data.map(item => item.sedes)
+  },
+
+  // Asignar una sede a un usuario
+  asignarSede: async (userId, sedeId) => {
+    const { data, error } = await supabase
+      .from('usuario_sedes')
+      .insert({ usuario_id: userId, sede_id: sedeId })
+      .select()
+
+    if (error) throw error
+    return data
+  },
+
+  // Remover una sede de un usuario
+  removerSede: async (userId, sedeId) => {
+    const { error } = await supabase
+      .from('usuario_sedes')
+      .delete()
+      .match({ usuario_id: userId, sede_id: sedeId })
+
+    if (error) throw error
+    return true
   }
 }
+

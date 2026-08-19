@@ -57,13 +57,60 @@ export const catalogService = {
   },
 
   // Productos
-  getProducts: async () => {
-    const { data, error } = await supabase.from('productos').select('*, categorias(nombre)').eq('activo', true).order('nombre')
+  getProducts: async (sedeId, viewArchived = false) => {
+    let query = supabase.from('productos').select('*, categorias(nombre)')
+    
+    // Si no queremos ver los archivados y no hay sede (vista global), filtramos por activo global
+    if (!viewArchived && !sedeId) {
+      query = query.eq('activo', true)
+    }
+    
+    const { data, error } = await query.order('nombre')
     if (error) throw error
+
+    if (sedeId) {
+      const { data: stockData } = await supabase
+        .from('stock_sedes')
+        .select('producto_id, stock_actual, activo')
+        .eq('sede_id', sedeId)
+
+      if (stockData) {
+        const stockMap = new Map(stockData.map(s => [s.producto_id, { stock: Number(s.stock_actual), activo: s.activo }]))
+        let mappedData = data.map(p => {
+          const s = stockMap.get(p.id) || { stock: 0, activo: false }
+          return {
+            ...p,
+            stock_actual: s.stock,
+            sede_activo: s.activo
+          }
+        })
+
+        // Si no queremos ver archivados, ocultamos los que están desactivados local o globalmente
+        if (!viewArchived) {
+          mappedData = mappedData.filter(p => p.sede_activo !== false && p.activo !== false)
+        }
+        
+        return mappedData
+      }
+    }
+
     return data
   },
 
   createProduct: async (payload) => {
+    // Si viene con sede_id, utilizamos la función RPC con aislamiento multi-sede
+    if (payload.sede_id) {
+      const { data, error } = await supabase.rpc('rpc_crear_producto_sede', {
+        p_nombre: payload.nombre,
+        p_unidad_medida: payload.unidad_medida,
+        p_categoria_id: payload.categoria_id,
+        p_sede_id: payload.sede_id,
+        p_activar_todas: Boolean(payload.activar_todas)
+      })
+      if (error) throw error
+      return data
+    }
+
     const { data, error } = await supabase.from('productos').insert([payload]).select('*, categorias(nombre)').single()
     if (error) throw error
     return data
@@ -75,28 +122,60 @@ export const catalogService = {
     return data
   },
 
-  deleteProduct: async (id) => {
-    // Soft Delete
-    const { error } = await supabase.from('productos').update({ activo: false }).eq('id', id)
-    if (error) throw error
+  deleteProduct: async (id, sedeId = null, global = false) => {
+    if (!global && sedeId) {
+      // Soft Delete local (solo para la sede)
+      const { data } = await supabase.from('stock_sedes').select('id').eq('producto_id', id).eq('sede_id', sedeId).maybeSingle()
+      if (data) {
+        const { error } = await supabase.from('stock_sedes').update({ activo: false }).eq('producto_id', id).eq('sede_id', sedeId)
+        if (error) throw error
+      } else {
+        const { error } = await supabase.from('stock_sedes').insert({ producto_id: id, sede_id: sedeId, stock_actual: 0, activo: false })
+        if (error) throw error
+      }
+    } else {
+      // Soft Delete global (toda la empresa)
+      const { error } = await supabase.from('productos').update({ activo: false }).eq('id', id)
+      if (error) throw error
+    }
+    return true
+  },
+
+  restoreProduct: async (id, sedeId = null, global = false) => {
+    if (!global && sedeId) {
+      // Restaurar localmente
+      const { error } = await supabase.from('stock_sedes').update({ activo: true }).eq('producto_id', id).eq('sede_id', sedeId)
+      if (error) throw error
+    } else {
+      // Restaurar globalmente
+      const { error } = await supabase.from('productos').update({ activo: true }).eq('id', id)
+      if (error) throw error
+    }
     return true
   },
 
   // --- KARDEX (Movimientos) ---
-  getProductMovements: async (productId) => {
-    const { data, error } = await supabase
+  getProductMovements: async (productId, sedeId) => {
+    let query = supabase
       .from('movimientos_kardex')
       .select('*')
       .eq('producto_id', productId)
-      .order('fecha', { ascending: false })
+
+    if (sedeId) {
+      query = query.eq('sede_id', sedeId)
+    }
+
+    const { data, error } = await query.order('fecha', { ascending: false })
       
     if (error) throw error
     return data
   },
 
   registerMovement: async (payload) => {
+    // payload debe incluir: { p_producto_id, p_sede_id, p_tipo_movimiento, p_cantidad, p_observaciones }
     const { data, error } = await supabase.rpc('registrar_movimiento', payload)
     if (error) throw error
     return data
   }
 }
+
