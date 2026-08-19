@@ -42,7 +42,8 @@ export function UsersModule() {
       setUserSedesMap(sedesMap)
 
     } catch (err) {
-      setError('Error al cargar usuarios. Asegúrate de que las tablas existan en BD.')
+      console.error('Error al cargar personal:', err)
+      setError(err.message || 'Error al cargar usuarios. Asegúrate de tener los permisos RLS en Supabase.')
     } finally {
       setLoading(false)
     }
