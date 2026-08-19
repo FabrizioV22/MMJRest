@@ -408,9 +408,9 @@ export function AsistenciaModule() {
 
       {/* Modal de Justificación de Tardanza */}
       {justifyItem && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-[#E9DFD9] animate-in fade-in zoom-in-95 duration-200">
-            <h3 className="text-base font-bold text-[#2C211F]">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-[#E9DFD9] animate-in fade-in slide-in-from-bottom-6 sm:zoom-in-95 duration-200">
+            <h3 className="text-sm sm:text-base font-bold text-[#2C211F]">
               Justificar Asistencia de {justifyItem.nombre}
             </h3>
             <p className="text-xs text-[#877571] mt-1">
@@ -426,21 +426,21 @@ export function AsistenciaModule() {
                 onChange={(e) => setJustifyObs(e.target.value)}
                 placeholder="Ej: Permiso médico autorizado / Apoyo en compras"
                 rows={3}
-                className="w-full px-3 py-2 bg-[#FAF7F4] border border-[#D8CBC5] rounded-xl text-xs text-[#2C211F] outline-none resize-none font-medium"
+                className="w-full px-3 py-2.5 bg-[#FAF7F4] border border-[#D8CBC5] rounded-xl text-xs text-[#2C211F] outline-none resize-none font-medium shadow-2xs"
               />
             </div>
 
-            <div className="mt-6 flex justify-end space-x-2">
+            <div className="mt-6 flex justify-end space-x-2.5">
               <button
                 onClick={() => setJustifyItem(null)}
-                className="px-4 py-2 text-xs font-medium text-[#5D4B47] hover:bg-[#FAF7F4] rounded-xl border border-[#D8CBC5] cursor-pointer"
+                className="flex-1 sm:flex-none px-4 py-2.5 text-xs font-semibold text-[#5D4B47] hover:bg-[#FAF7F4] rounded-xl border border-[#D8CBC5] cursor-pointer transition-colors"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleSaveJustification}
                 disabled={isSubmitting || !justifyObs.trim()}
-                className="px-4 py-2 text-xs font-bold text-white bg-[#A80F14] hover:bg-[#7F0C10] disabled:opacity-40 rounded-xl cursor-pointer shadow-md transition-all"
+                className="flex-1 sm:flex-none px-5 py-2.5 text-xs font-bold text-white bg-[#A80F14] hover:bg-[#7F0C10] disabled:opacity-40 rounded-xl cursor-pointer shadow-md transition-all"
               >
                 Guardar Justificación
               </button>
