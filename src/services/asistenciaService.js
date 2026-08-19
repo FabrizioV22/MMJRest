@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase'
+import { getLimaDateString } from '../utils/dateUtils'
 
 export const asistenciaService = {
   /**
@@ -43,7 +44,7 @@ export const asistenciaService = {
           {
             usuario_id: uid,
             sede_id: sedeId,
-            fecha: new Date().toISOString().split('T')[0],
+            fecha: getLimaDateString(),
             hora_evento: new Date().toISOString(),
             tipo_marca: tipoMarca,
             estado_puntualidad: 'A_TIEMPO',
@@ -67,7 +68,7 @@ export const asistenciaService = {
    * Obtiene todas las marcaciones de una fecha y sede específica
    */
   getMarcacionesDelDia: async (sedeId, fecha = null) => {
-    const targetDate = fecha || new Date().toISOString().split('T')[0]
+    const targetDate = fecha || getLimaDateString()
 
     let query = supabase
       .from('asistencia_marcaciones')
@@ -119,6 +120,20 @@ export const asistenciaService = {
   },
 
   /**
+   * Guarda o actualiza múltiples turnos programados a la vez (Carga Semanal Masiva)
+   */
+  guardarTurnosMasivos: async (payloads = []) => {
+    if (!payloads || payloads.length === 0) return []
+    const { data, error } = await supabase
+      .from('asistencia_turnos_programados')
+      .upsert(payloads, { onConflict: 'usuario_id,sede_id,dia_semana' })
+      .select('*, usuarios(id, nombre_completo, roles)')
+
+    if (error) throw error
+    return data || []
+  },
+
+  /**
    * Elimina / desactiva un turno programado
    */
   eliminarTurnoProgramado: async (turnoId) => {
@@ -134,14 +149,14 @@ export const asistenciaService = {
   /**
    * Obtiene el estado de marcaciones de hoy para el usuario actual
    */
-  getMiEstadoHoy: async (usuarioId, sedeId) => {
-    const today = new Date().toISOString().split('T')[0]
+  getMiEstadoHoy: async (usuarioId, sedeId, fecha = null) => {
+    const targetDate = fecha || getLimaDateString()
 
     let query = supabase
       .from('asistencia_marcaciones')
       .select('*')
       .eq('usuario_id', usuarioId)
-      .eq('fecha', today)
+      .eq('fecha', targetDate)
       .order('hora_evento', { ascending: true })
 
     if (sedeId) {

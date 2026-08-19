@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useSede } from '../../context/SedeContext'
 import { useToast } from '../../context/ToastContext'
 import { asistenciaService } from '../../services/asistenciaService'
+import { getLimaDateString, getLimaDayOfWeek, formatLimaTime } from '../../utils/dateUtils'
 import { AttendanceKpiGrid } from './components/AttendanceKpiGrid'
 import { LiveAttendanceTable } from './components/LiveAttendanceTable'
 import { MobilePunchCard } from './components/MobilePunchCard'
@@ -17,7 +18,7 @@ export function AsistenciaModule() {
 
   const isAdmin = userProfile?.roles?.includes('ADMIN')
   const [activeTab, setActiveTab] = useState(isAdmin ? 'SUPERVISION' : 'MI_MARCACION')
-  const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0])
+  const [selectedDate, setSelectedDate] = useState(() => getLimaDateString())
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -38,7 +39,7 @@ export function AsistenciaModule() {
     if (!activeSede?.id) return
     setIsLoading(true)
     try {
-      // 1. Obtener marcaciones de la fecha
+      // 1. Obtener marcaciones de la fecha seleccionada en zona horaria Perú
       const marks = await asistenciaService.getMarcacionesDelDia(activeSede.id, selectedDate)
 
       // 2. Obtener turnos programados para la sede
@@ -50,7 +51,7 @@ export function AsistenciaModule() {
       setUsersList(sedeUsers)
 
       // 4. Calcular día de la semana de la fecha seleccionada (0=Dom, 1=Lun...)
-      const targetDayOfWeek = new Date(`${selectedDate}T12:00:00`).getDay()
+      const targetDayOfWeek = getLimaDayOfWeek(selectedDate)
       const scheduledToday = allShifts.filter(s => s.dia_semana === targetDayOfWeek)
 
       // 5. Mapear la tabla de supervisión en tiempo real
@@ -98,9 +99,9 @@ export function AsistenciaModule() {
           usuarioId: shift.usuario_id,
           nombre: user?.nombre_completo || 'Colaborador',
           rol: user?.roles?.[0] || 'Personal',
-          horarioProgramado: `${shift.hora_ingreso} - ${shift.hora_salida}`,
-          horaIngreso: ingreso ? new Date(ingreso.hora_evento).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }) : null,
-          horaSalida: salida ? new Date(salida.hora_evento).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }) : null,
+          horarioProgramado: `${shift.hora_ingreso?.substring(0, 5)} - ${shift.hora_salida?.substring(0, 5)}`,
+          horaIngreso: ingreso ? formatLimaTime(ingreso.hora_evento) : null,
+          horaSalida: salida ? formatLimaTime(salida.hora_evento) : null,
           estadoRefrigerio,
           estadoPuntualidad: estado,
           minutosTardanza: tardanza,
@@ -123,8 +124,8 @@ export function AsistenciaModule() {
             nombre: user?.nombre_completo || 'Personal',
             rol: user?.roles?.[0] || 'Personal',
             horarioProgramado: 'Sin turno fijo',
-            horaIngreso: ingreso ? new Date(ingreso.hora_evento).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }) : null,
-            horaSalida: salida ? new Date(salida.hora_evento).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }) : null,
+            horaIngreso: ingreso ? formatLimaTime(ingreso.hora_evento) : null,
+            horaSalida: salida ? formatLimaTime(salida.hora_evento) : null,
             estadoRefrigerio: '—',
             estadoPuntualidad: ingreso ? ingreso.estado_puntualidad : 'A_TIEMPO',
             minutosTardanza: ingreso?.minutos_tardanza || 0,
@@ -152,7 +153,7 @@ export function AsistenciaModule() {
 
       // 6. Obtener marcaciones de hoy del usuario autenticado
       if (userProfile?.id) {
-        const myMarks = await asistenciaService.getMiEstadoHoy(userProfile.id, activeSede.id)
+        const myMarks = await asistenciaService.getMiEstadoHoy(userProfile.id, activeSede.id, selectedDate)
         setMyTodayMarks(myMarks)
       }
     } catch (err) {
@@ -204,15 +205,22 @@ export function AsistenciaModule() {
     }
   }
 
-  // Guardar Turno
+  // Guardar Turno (Individual o Carga Masiva)
   const handleSaveShift = async (shiftPayload) => {
     setIsSubmitting(true)
     try {
-      await asistenciaService.guardarTurnoProgramado(shiftPayload)
-      toast.success('Horario asignado con éxito.')
+      if (Array.isArray(shiftPayload)) {
+        await asistenciaService.guardarTurnosMasivos(shiftPayload)
+        toast.success(`${shiftPayload.length} turnos programados con éxito.`)
+      } else {
+        await asistenciaService.guardarTurnoProgramado(shiftPayload)
+        toast.success('Horario asignado con éxito.')
+      }
+      setIsShiftModalOpen(false)
       await loadData()
     } catch (err) {
-      toast.error('Error al guardar turno.')
+      console.error('Error al guardar turno:', err)
+      toast.error(err.message || 'Error al guardar turno.')
     } finally {
       setIsSubmitting(false)
     }
@@ -325,17 +333,30 @@ export function AsistenciaModule() {
           <AttendanceKpiGrid stats={kpiStats} />
 
           {/* Filtro de Fecha */}
-          <div className="flex justify-between items-center bg-white p-3.5 rounded-2xl border border-[#E9DFD9] shadow-xs">
+          <div className="flex flex-wrap justify-between items-center bg-white p-3.5 rounded-2xl border border-[#E9DFD9] shadow-xs gap-2">
             <div className="flex items-center space-x-2 text-xs font-bold text-[#5D4B47]">
               <Calendar size={16} className="text-[#A80F14]" />
               <span>Fecha de Consulta:</span>
             </div>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="px-3 py-1.5 bg-[#FAF7F4] border border-[#D8CBC5] rounded-xl text-xs font-semibold text-[#2C211F] outline-none cursor-pointer"
-            />
+            <div className="flex items-center space-x-2">
+              <button
+                type="button"
+                onClick={() => setSelectedDate(getLimaDateString())}
+                className={`px-3 py-1.5 text-xs font-bold rounded-xl border transition-all cursor-pointer ${
+                  selectedDate === getLimaDateString()
+                    ? 'bg-[#A80F14] text-white border-[#A80F14] shadow-xs'
+                    : 'bg-[#FAF7F4] text-[#5D4B47] border-[#D8CBC5] hover:bg-gray-100'
+                }`}
+              >
+                Hoy
+              </button>
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="px-3 py-1.5 bg-[#FAF7F4] border border-[#D8CBC5] rounded-xl text-xs font-semibold text-[#2C211F] outline-none cursor-pointer"
+              />
+            </div>
           </div>
 
           {/* Tabla en Vivo */}

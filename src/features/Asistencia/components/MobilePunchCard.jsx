@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { MapPin, Navigation, Loader2, CheckCircle2, Coffee, LogOut, Clock, Smartphone, Monitor } from 'lucide-react'
 import { getCurrentPosition, calculateDistanceMeters } from '../../../utils/geolocation'
+import { formatLimaTime } from '../../../utils/dateUtils'
 
 export function MobilePunchCard({
   activeSede,
@@ -200,15 +201,13 @@ export function MobilePunchCard({
 }
 
 function StepBadge({ label, isDone, time }) {
-  const formattedTime = time
-    ? new Date(time).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })
-    : null
+  const formattedTime = time ? formatLimaTime(time) : null
 
   return (
     <div
       className={`p-2.5 rounded-xl border text-center transition-all ${
         isDone
-          ? 'bg-emerald-50/60 border-emerald-200 text-emerald-900'
+          ? 'bg-emerald-50/60 border-emerald-200 text-emerald-900 shadow-xs'
           : 'bg-[#FAF7F4] border-[#E9DFD9] text-[#877571]'
       }`}
     >
