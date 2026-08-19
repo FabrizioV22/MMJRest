@@ -18,7 +18,7 @@ export const userService = {
     const { data, error } = await supabase
       .from('usuarios')
       .select('*')
-      .order('created_at', { ascending: false })
+      .order('nombre_completo', { ascending: true })
     
     if (error) throw error
     return data
