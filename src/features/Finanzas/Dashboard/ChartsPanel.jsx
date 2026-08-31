@@ -80,7 +80,7 @@ export function ChartsPanel({ chartSedesData, monthlyTrendData, paymentMethodsDa
           
           {paymentMethodsData.length > 0 && (
             <div className="mt-4 space-y-2">
-              {paymentMethodsData.sort((a,b) => b.value - a.value).map((entry, i) => (
+              {[...paymentMethodsData].sort((a,b) => b.value - a.value).map((entry, i) => (
                 <div key={i} className="flex justify-between items-center text-xs">
                   <div className="flex items-center space-x-2">
                     <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }}></div>

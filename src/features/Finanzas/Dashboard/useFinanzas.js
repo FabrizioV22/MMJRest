@@ -187,11 +187,13 @@ export function useFinanzas() {
       'Transferencia': '#6366F1'
     }
 
-    return Object.entries(methods).map(([name, value]) => ({
-      name,
-      value,
-      color: COLORS[name] || '#94A3B8'
-    }))
+    return Object.entries(methods)
+      .map(([name, value]) => ({
+        name,
+        value,
+        color: COLORS[name] || '#94A3B8'
+      }))
+      .sort((a, b) => b.value - a.value)
   }, [movimientos])
 
   // Evolución de métodos de pago en el tiempo (Stacked Area Chart)
