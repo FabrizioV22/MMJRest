@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { 
   Plus, Search, Edit2, Archive, Package, X, Loader2, ChevronRight, FolderOpen, 
   ArrowDownCircle, ArrowUpCircle, Home, Settings, Layers, BarChart3, Trash2
@@ -321,25 +322,25 @@ export function CatalogModule() {
   if (viewState.startsWith('FORM_')) {
     const formAccent = viewState === 'FORM_AREA' ? levelTheme.area.accent : viewState === 'FORM_CAT' ? levelTheme.category.accent : levelTheme.product.accent
     return (
-      <div className="animate-fade-in-up max-w-2xl mx-auto mt-8">
-        <div className="bg-white p-6 sm:p-8 rounded-3xl card-soft border border-[#E9DFD9]">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-bold" style={{ color: formAccent }}>
+      <div className="animate-fade-in-up max-w-2xl mx-auto mt-2 sm:mt-6 pb-8">
+        <div className="bg-white p-5 sm:p-8 rounded-3xl card-soft border border-[#E9DFD9]">
+          <div className="flex justify-between items-center mb-5 sm:mb-6 pb-3 border-b border-[#FAF7F4]">
+            <h3 className="text-lg sm:text-xl font-bold" style={{ color: formAccent }}>
               {isEditMode ? 'Editar' : 'Crear'} {viewState === 'FORM_PROD' ? 'Producto' : viewState === 'FORM_CAT' ? 'Categoría' : 'Área'}
             </h3>
             <button onClick={cancelView} aria-label="Cerrar formulario" title="Cerrar" className="p-2 text-[#877571] hover:bg-[#FAF7F4] rounded-full cursor-pointer"><X size={20} /></button>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
             {viewState === 'FORM_PROD' && (
               <>
                 <div className="space-y-1.5">
                   <label className="block text-xs font-bold text-[#5D4B47] uppercase tracking-wider">Nombre del Producto</label>
-                  <input type="text" value={prodForm.nombre} onChange={e => setProdForm({...prodForm, nombre: e.target.value})} placeholder="Ej: Arroz Extra" className="w-full px-4 py-3 bg-[#FAF7F4] border border-[#D8CBC5] rounded-xl outline-none focus:border-[#A80F14] text-sm text-[#2C211F] font-medium" />
+                  <input type="text" value={prodForm.nombre} onChange={e => setProdForm({...prodForm, nombre: e.target.value})} placeholder="Ej: Arroz Extra" className="w-full px-4 py-3 bg-[#FAF7F4] border border-[#D8CBC5] rounded-xl outline-none focus:border-[#A80F14] text-sm text-[#2C211F] font-medium min-h-[44px]" />
                 </div>
                 <div className="space-y-1.5">
                   <label className="block text-xs font-bold text-[#5D4B47] uppercase tracking-wider">Unidad (SKU / Medida)</label>
-                  <input type="text" value={prodForm.unidad_medida} onChange={e => setProdForm({...prodForm, unidad_medida: e.target.value})} placeholder="Ej: kg, L, un" className="w-full px-4 py-3 bg-[#FAF7F4] border border-[#D8CBC5] rounded-xl outline-none focus:border-[#A80F14] text-sm text-[#2C211F] font-medium" />
+                  <input type="text" value={prodForm.unidad_medida} onChange={e => setProdForm({...prodForm, unidad_medida: e.target.value})} placeholder="Ej: kg, L, un" className="w-full px-4 py-3 bg-[#FAF7F4] border border-[#D8CBC5] rounded-xl outline-none focus:border-[#A80F14] text-sm text-[#2C211F] font-medium min-h-[44px]" />
                 </div>
                 <div className="space-y-1.5">
                   <label className="block text-xs font-bold text-[#5D4B47] uppercase tracking-wider">Pertenece al Área</label>
@@ -347,14 +348,14 @@ export function CatalogModule() {
                     const area_id = e.target.value;
                     const firstCat = categories.find(c => c.area_id === area_id);
                     setProdForm({...prodForm, area_id, categoria_id: firstCat?.id || ''})
-                  }} className="w-full px-4 py-3 bg-[#FAF7F4] border border-[#D8CBC5] rounded-xl outline-none cursor-pointer text-sm text-[#2C211F] font-medium">
+                  }} className="w-full px-4 py-3 bg-[#FAF7F4] border border-[#D8CBC5] rounded-xl outline-none cursor-pointer text-sm text-[#2C211F] font-medium min-h-[44px]">
                     <option value="">Selecciona Área</option>
                     {areas.map(a => <option key={a.id} value={a.id}>{a.nombre}</option>)}
                   </select>
                 </div>
                 <div className="space-y-1.5">
                   <label className="block text-xs font-bold text-[#5D4B47] uppercase tracking-wider">Categoría</label>
-                  <select disabled={!prodForm.area_id} value={prodForm.categoria_id} onChange={e => setProdForm({...prodForm, categoria_id: e.target.value})} className="w-full px-4 py-3 bg-[#FAF7F4] border border-[#D8CBC5] rounded-xl outline-none disabled:opacity-40 cursor-pointer text-sm text-[#2C211F] font-medium">
+                  <select disabled={!prodForm.area_id} value={prodForm.categoria_id} onChange={e => setProdForm({...prodForm, categoria_id: e.target.value})} className="w-full px-4 py-3 bg-[#FAF7F4] border border-[#D8CBC5] rounded-xl outline-none disabled:opacity-40 cursor-pointer text-sm text-[#2C211F] font-medium min-h-[44px]">
                     <option value="">Selecciona Categoría</option>
                     {categories.filter(c => c.area_id === prodForm.area_id).map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
                   </select>
@@ -381,11 +382,11 @@ export function CatalogModule() {
               <>
                 <div className="space-y-1.5 md:col-span-2">
                   <label className="block text-xs font-bold text-[#5D4B47] uppercase tracking-wider">Nombre de Categoría</label>
-                  <input type="text" value={catForm.nombre} onChange={e => setCatForm({...catForm, nombre: e.target.value.toUpperCase()})} placeholder="Ej: CARNES Y AVES" className="w-full px-4 py-3 bg-[#FAF7F4] border border-[#D8CBC5] rounded-xl outline-none uppercase text-sm text-[#2C211F] font-medium" />
+                  <input type="text" value={catForm.nombre} onChange={e => setCatForm({...catForm, nombre: e.target.value.toUpperCase()})} placeholder="Ej: CARNES Y AVES" className="w-full px-4 py-3 bg-[#FAF7F4] border border-[#D8CBC5] rounded-xl outline-none uppercase text-sm text-[#2C211F] font-medium min-h-[44px]" />
                 </div>
                 <div className="space-y-1.5 md:col-span-2">
                   <label className="block text-xs font-bold text-[#5D4B47] uppercase tracking-wider">Pertenece al Área</label>
-                  <select value={catForm.area_id} onChange={e => setCatForm({...catForm, area_id: e.target.value})} className="w-full px-4 py-3 bg-[#FAF7F4] border border-[#D8CBC5] rounded-xl outline-none cursor-pointer text-sm text-[#2C211F] font-medium">
+                  <select value={catForm.area_id} onChange={e => setCatForm({...catForm, area_id: e.target.value})} className="w-full px-4 py-3 bg-[#FAF7F4] border border-[#D8CBC5] rounded-xl outline-none cursor-pointer text-sm text-[#2C211F] font-medium min-h-[44px]">
                     {areas.map(a => <option key={a.id} value={a.id}>{a.nombre}</option>)}
                   </select>
                 </div>
@@ -394,14 +395,14 @@ export function CatalogModule() {
             {viewState === 'FORM_AREA' && (
               <div className="space-y-1.5 md:col-span-2">
                 <label className="block text-xs font-bold text-[#5D4B47] uppercase tracking-wider">Nombre del Área</label>
-                <input type="text" value={areaForm.nombre} onChange={e => setAreaForm({...areaForm, nombre: e.target.value.toUpperCase()})} placeholder="Ej: COCINA PRINCIPAL" className="w-full px-4 py-3 bg-[#FAF7F4] border border-[#D8CBC5] rounded-xl outline-none uppercase text-sm text-[#2C211F] font-medium" />
+                <input type="text" value={areaForm.nombre} onChange={e => setAreaForm({...areaForm, nombre: e.target.value.toUpperCase()})} placeholder="Ej: COCINA PRINCIPAL" className="w-full px-4 py-3 bg-[#FAF7F4] border border-[#D8CBC5] rounded-xl outline-none uppercase text-sm text-[#2C211F] font-medium min-h-[44px]" />
               </div>
             )}
           </div>
           
-          <div className="mt-8 flex justify-end space-x-3 pt-5 border-t border-[#E9DFD9]">
-            <button onClick={cancelView} disabled={isSubmitting} className="px-5 py-2.5 border border-[#D8CBC5] rounded-xl hover:bg-[#FAF7F4] font-medium cursor-pointer text-sm text-[#5D4B47]">Cancelar</button>
-            <button onClick={viewState === 'FORM_PROD' ? handleSaveProduct : viewState === 'FORM_CAT' ? handleSaveCategory : handleSaveArea} disabled={isSubmitting} className="px-6 py-2.5 bg-[#A80F14] hover:bg-[#7F0C10] text-[#FFF9F0] rounded-xl font-bold text-sm cursor-pointer shadow-md transition-all">
+          <div className="mt-6 sm:mt-8 flex justify-end space-x-3 pt-5 border-t border-[#E9DFD9]">
+            <button onClick={cancelView} disabled={isSubmitting} className="flex-1 sm:flex-none px-5 py-3 border border-[#D8CBC5] rounded-xl hover:bg-[#FAF7F4] font-medium cursor-pointer text-xs sm:text-sm text-[#5D4B47]">Cancelar</button>
+            <button onClick={viewState === 'FORM_PROD' ? handleSaveProduct : viewState === 'FORM_CAT' ? handleSaveCategory : handleSaveArea} disabled={isSubmitting} className="flex-1 sm:flex-none px-6 py-3 bg-[#A80F14] hover:bg-[#7F0C10] text-[#FFF9F0] rounded-xl font-bold text-xs sm:text-sm cursor-pointer shadow-md transition-all">
               {isSubmitting ? <Loader2 className="animate-spin mx-auto" size={18} /> : 'Guardar'}
             </button>
           </div>
@@ -722,10 +723,10 @@ export function CatalogModule() {
         </div>
       )}
 
-      {/* MODAL ARCHIVAR / ELIMINAR */}
-      {itemToDelete && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-xs p-0 sm:p-4">
-          <div className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-sm p-6 sm:p-8 text-center animate-in fade-in slide-in-from-bottom-6 sm:zoom-in-95 border border-[#E9DFD9]">
+      {/* MODAL ARCHIVAR / ELIMINAR CON PORTAL */}
+      {itemToDelete && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/75 backdrop-blur-xs p-4 overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-6 sm:p-8 text-center animate-in zoom-in-95 duration-200 border border-[#E9DFD9] my-auto">
             {deleteType === 'PRODUCT' ? (
               <Archive className="text-[#B45309] w-12 h-12 mx-auto mb-4 bg-amber-50 p-2.5 rounded-2xl border border-amber-200" />
             ) : deleteType === 'PRODUCT_RESTORE' ? (
@@ -752,37 +753,95 @@ export function CatalogModule() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {/* MODAL TRANSACCIÓN KARDEX */}
-      {viewState === 'TX_MODAL' && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-xs p-0 sm:p-4">
-          <div className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-md animate-in fade-in slide-in-from-bottom-6 sm:zoom-in-95 overflow-hidden border border-[#E9DFD9] max-h-[92dvh] sm:max-h-[90vh] flex flex-col">
-            <div className={`p-5 sm:p-6 border-b flex justify-between items-center shrink-0 ${txType === 'INGRESO' ? 'bg-emerald-50 border-emerald-100' : 'bg-rose-50 border-rose-100'}`}>
-              <h3 className={`text-base sm:text-xl font-black flex items-center ${txType === 'INGRESO' ? 'text-[#15803D]' : 'text-[#B42318]'}`}>
-                {txType === 'INGRESO' ? <ArrowDownCircle className="mr-2"/> : <ArrowUpCircle className="mr-2"/>} Registrar {txType}
-              </h3>
-              <button onClick={cancelView} aria-label="Cerrar modal" title="Cerrar" className="p-2 cursor-pointer rounded-full hover:bg-black/5 text-[#5D4B47] transition-colors"><X size={20} /></button>
-            </div>
-            <div className="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1 overscroll-contain">
-              <div>
-                <label className="block text-xs font-bold text-[#5D4B47] uppercase tracking-wider mb-2">Cantidad a {txType === 'INGRESO' ? 'sumar al stock' : 'restar del stock'}</label>
-                <input type="number" inputMode="decimal" step="0.01" min="0" aria-label="Cantidad de movimiento" value={txAmount} onChange={e => setTxAmount(e.target.value)} autoFocus className="w-full px-5 py-3.5 bg-[#FAF7F4] border-2 border-[#D8CBC5] rounded-2xl outline-none text-2xl sm:text-3xl font-black text-center focus:border-[#A80F14] text-[#2C211F] min-h-[44px] shadow-2xs" />
+      {/* MODAL TRANSACCIÓN KARDEX (Limpio, Rápido y Portaleado sobre todo el sistema) */}
+      {viewState === 'TX_MODAL' && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/75 backdrop-blur-xs p-4 overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-[#E9DFD9] animate-in zoom-in-95 duration-200 my-auto flex flex-col max-h-[92dvh]">
+            
+            {/* Header Limpio */}
+            <div className={`p-4 sm:p-5 border-b flex justify-between items-center shrink-0 ${txType === 'INGRESO' ? 'bg-emerald-50 border-emerald-100' : 'bg-rose-50 border-rose-100'}`}>
+              <div className="flex items-center space-x-2.5">
+                <div className={txType === 'INGRESO' ? 'text-[#15803D]' : 'text-[#B42318]'}>
+                  {txType === 'INGRESO' ? <ArrowDownCircle size={24} /> : <ArrowUpCircle size={24} />}
+                </div>
+                <h3 className={`text-base sm:text-lg font-black tracking-wide ${txType === 'INGRESO' ? 'text-[#15803D]' : 'text-[#B42318]'}`}>
+                  Registrar {txType}
+                </h3>
               </div>
+              <button 
+                onClick={cancelView} 
+                aria-label="Cerrar modal" 
+                title="Cerrar" 
+                className="p-1.5 cursor-pointer rounded-full hover:bg-black/5 text-[#5D4B47] transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Formulario Simple y Rápido */}
+            <div className="p-5 space-y-4 overflow-y-auto flex-1">
               <div>
-                <label className="block text-xs font-bold text-[#5D4B47] uppercase tracking-wider mb-2">Observación (Opcional)</label>
-                <textarea value={txObs} onChange={e => setTxObs(e.target.value)} placeholder="Ej: Compra proveedor / Merma cocina" className="w-full px-4 py-3 bg-[#FAF7F4] border border-[#D8CBC5] rounded-xl outline-none resize-none h-20 text-xs sm:text-sm text-[#2C211F] shadow-2xs" />
+                <label className="block text-xs font-bold text-[#5D4B47] uppercase tracking-wider mb-2">
+                  Cantidad a {txType === 'INGRESO' ? 'sumar al stock' : 'restar del stock'}
+                </label>
+                <input 
+                  type="number" 
+                  inputMode="decimal" 
+                  step="0.01" 
+                  min="0" 
+                  placeholder="0.00"
+                  aria-label="Cantidad de movimiento" 
+                  value={txAmount} 
+                  onChange={e => setTxAmount(e.target.value)} 
+                  className="w-full px-4 py-3.5 bg-[#FAF7F4] border-2 border-[#D8CBC5] rounded-2xl outline-none text-2xl font-black text-center focus:border-[#A80F14] text-[#2C211F] min-h-[50px]" 
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#5D4B47] uppercase tracking-wider mb-2">
+                  Observación (Opcional)
+                </label>
+                <textarea 
+                  value={txObs} 
+                  onChange={e => setTxObs(e.target.value)} 
+                  placeholder="Ej: Compra proveedor / Merma cocina" 
+                  className="w-full px-4 py-3 bg-[#FAF7F4] border border-[#D8CBC5] rounded-xl outline-none resize-none h-20 text-xs sm:text-sm text-[#2C211F]" 
+                />
               </div>
             </div>
-            <div className="p-4 sm:p-5 border-t border-[#E9DFD9] bg-[#FAF7F4] flex gap-2.5 shrink-0">
-              <button onClick={cancelView} disabled={isSubmitting} className="flex-1 py-3 bg-white border border-[#D8CBC5] rounded-xl font-bold cursor-pointer hover:bg-gray-50 text-xs sm:text-sm text-[#5D4B47] transition-colors">Cancelar</button>
-              <button onClick={handleSaveTransaction} disabled={isSubmitting} className={`flex-1 py-3 text-white rounded-xl font-black cursor-pointer text-xs sm:text-sm shadow-md transition-all flex items-center justify-center ${txType === 'INGRESO' ? 'bg-[#15803D] hover:bg-emerald-800' : 'bg-[#B42318] hover:bg-rose-800'}`}>
-                {isSubmitting ? <Loader2 className="animate-spin mx-auto" size={18} /> : 'Confirmar'}
+
+            {/* Footer con Botones Grandes y Accesibles */}
+            <div className="p-4 sm:p-5 border-t border-[#E9DFD9] bg-[#FAF7F4] flex gap-3 shrink-0">
+              <button 
+                onClick={cancelView} 
+                disabled={isSubmitting} 
+                className="flex-1 py-3 bg-white border border-[#D8CBC5] rounded-xl font-bold cursor-pointer hover:bg-gray-50 text-xs sm:text-sm text-[#5D4B47] transition-colors"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={handleSaveTransaction} 
+                disabled={isSubmitting || !txAmount || Number(txAmount) <= 0} 
+                className={`flex-1 py-3 text-white rounded-xl font-black cursor-pointer text-xs sm:text-sm shadow-md transition-all flex items-center justify-center space-x-1.5 disabled:opacity-40 ${
+                  txType === 'INGRESO' 
+                    ? 'bg-[#15803D] hover:bg-emerald-800 active:bg-emerald-900' 
+                    : 'bg-[#B42318] hover:bg-rose-800 active:bg-rose-900'
+                }`}
+              >
+                {isSubmitting ? (
+                  <Loader2 className="animate-spin mx-auto" size={18} />
+                ) : (
+                  <span>Aceptar</span>
+                )}
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

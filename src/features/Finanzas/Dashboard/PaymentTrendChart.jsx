@@ -35,15 +35,15 @@ export function PaymentTrendChart({ data }) {
     : `S/ ${Number(val || 0).toLocaleString('es-PE', { minimumFractionDigits: 2 })}`
 
   return (
-    <div className="bg-white p-6 rounded-2xl card-soft border border-[#E9DFD9]">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+    <div className="bg-white p-4 sm:p-6 rounded-2xl card-soft border border-[#E9DFD9] min-w-0">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-6">
         <div className="flex items-center space-x-2">
           <div className="p-2 bg-[#FFF9F0] text-[#D6A24A] border border-[#E7C77A] rounded-xl">
             <CreditCard size={20} />
           </div>
           <div>
-            <h3 className="text-base font-bold text-[#2C211F]">Evolución de Métodos de Pago</h3>
-            <p className="text-xs text-[#5D4B47]">Tendencia mensual de recaudación por canal de cobro</p>
+            <h3 className="text-sm sm:text-base font-bold text-[#2C211F]">Evolución de Métodos de Pago</h3>
+            <p className="text-[11px] sm:text-xs text-[#5D4B47]">Tendencia mensual de recaudación por canal de cobro</p>
           </div>
         </div>
 
@@ -64,34 +64,34 @@ export function PaymentTrendChart({ data }) {
         </div>
       </div>
 
-      <div className="h-[300px] w-full">
+      <div className="h-[280px] sm:h-[300px] w-full min-w-0">
         {(!processedData || processedData.length === 0) ? (
-          <div className="flex justify-center items-center h-full text-[#877571] text-sm">
+          <div className="flex justify-center items-center h-full text-[#877571] text-xs sm:text-sm">
             No hay datos suficientes de métodos de pago en el tiempo.
           </div>
         ) : (
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0}>
             <AreaChart data={processedData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E9DFD9" />
               <XAxis 
                 dataKey="name" 
                 axisLine={false} 
                 tickLine={false} 
-                tick={{ fill: '#877571', fontSize: 12, fontFamily: 'Karla' }} 
+                tick={{ fill: '#877571', fontSize: 11, fontFamily: 'Karla' }} 
                 dy={10} 
               />
               <YAxis 
                 axisLine={false} 
                 tickLine={false} 
-                tick={{ fill: '#877571', fontSize: 12, fontFamily: 'Karla' }} 
+                tick={{ fill: '#877571', fontSize: 11, fontFamily: 'Karla' }} 
                 tickFormatter={(v) => mode === 'percent' ? `${v}%` : `S/ ${v}`}
               />
               <Tooltip 
                 cursor={{ stroke: '#D8CBC5', strokeWidth: 1 }}
                 formatter={(val, name) => [fmt(val), name]}
-                contentStyle={{ borderRadius: '12px', border: '1px solid #E9DFD9', boxShadow: '0 10px 15px -3px rgba(58, 15, 15, 0.08)' }}
+                contentStyle={{ borderRadius: '12px', border: '1px solid #E9DFD9', boxShadow: '0 10px 15px -3px rgba(58, 15, 15, 0.08)', fontSize: '12px' }}
               />
-              <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
+              <Legend iconType="circle" wrapperStyle={{ paddingTop: '15px', fontSize: '12px' }} />
               {Object.entries(PAYMENT_COLORS).map(([metodo, color]) => (
                 <Area 
                   key={metodo}

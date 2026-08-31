@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react'
-import { X, Calendar, Plus, Trash2, Loader2, Clock, Check, Sparkles, User, ChevronDown } from 'lucide-react'
+import { createPortal } from 'react-dom'
+import { X, Calendar, Plus, Trash2, Loader2, Check, Sparkles, ChevronDown } from 'lucide-react'
 
 const DIAS_SEMANA = [
   { id: 1, label: 'Lunes', short: 'Lun' },
@@ -115,8 +116,8 @@ export function ShiftSchedulerModal({
     await onSaveShift(payloads)
   }
 
-  return (
-    <div className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] bg-black/70 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
       <div className="bg-white rounded-t-3xl sm:rounded-2xl max-w-3xl w-full shadow-2xl border border-[#E9DFD9] animate-in fade-in slide-in-from-bottom-6 sm:zoom-in-95 duration-200 h-[92dvh] sm:h-auto sm:max-h-[90vh] flex flex-col overflow-hidden">
         
         {/* Header Fijo */}
@@ -436,6 +437,7 @@ export function ShiftSchedulerModal({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

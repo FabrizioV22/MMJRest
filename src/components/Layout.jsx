@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { LogOut, MapPin, ChevronLeft, MoreHorizontal, X, ChevronRight, Shield } from 'lucide-react'
+import { LogOut, MapPin, ChevronLeft, MoreHorizontal, X, ChevronRight } from 'lucide-react'
 import { authService } from '../services/authService'
 import { useAuth } from '../context/AuthContext'
 import { useSede } from '../context/SedeContext'
@@ -224,6 +224,9 @@ export function Layout({ children }) {
         <div className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-xs flex items-end justify-center animate-in fade-in duration-200">
           <div className="bg-[#211716] border-t border-[#3A0F0F] text-[#FFF9F0] rounded-t-3xl w-full max-w-lg p-5 space-y-4 shadow-2xl animate-in slide-in-from-bottom-8 duration-200 max-h-[85dvh] flex flex-col pb-8">
             
+            {/* Mobile Drag Handle */}
+            <div className="w-12 h-1 bg-[#5D4B47] rounded-full mx-auto -mt-2 mb-1 shrink-0"></div>
+
             {/* Header del Bottom Sheet */}
             <div className="flex items-center justify-between pb-3 border-b border-[#3A0F0F]/80 shrink-0">
               <div className="flex items-center space-x-2.5">

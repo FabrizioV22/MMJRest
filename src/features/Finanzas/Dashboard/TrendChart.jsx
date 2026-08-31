@@ -11,35 +11,38 @@ export function TrendChart({ data, sedes }) {
   }
   const FALLBACK_COLORS = ['#3A0F0F', '#15803D', '#2563EB', '#B45309']
 
-  const activeSedes = sedes && sedes.length > 0 ? sedes.map(s => s.nombre) : ['Lince', 'Pueblo Libre']
+  const activeSedes = (sedes && sedes.length > 0)
+    ? sedes.map(s => (typeof s === 'string' ? s : s?.nombre)).filter(Boolean)
+    : ['Lince', 'Pueblo Libre']
 
   return (
-    <div className="bg-white p-6 rounded-2xl card-soft border border-[#E9DFD9]">
-      <div className="flex items-center justify-between mb-6">
+    <div className="bg-white p-4 sm:p-6 rounded-2xl card-soft border border-[#E9DFD9] min-w-0">
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
         <div className="flex items-center space-x-2">
           <div className="p-2 bg-rose-50 text-[#A80F14] border border-rose-100 rounded-xl">
             <TrendingUp size={20} />
           </div>
           <div>
-            <h3 className="text-base font-bold text-[#2C211F]">Evolución de Ganancias Mensuales</h3>
-            <p className="text-xs text-[#5D4B47]">Comparativa histórica de ingresos netos por sede</p>
+            <h3 className="text-sm sm:text-base font-bold text-[#2C211F]">Evolución de Ganancias Mensuales</h3>
+            <p className="text-[11px] sm:text-xs text-[#5D4B47]">Comparativa histórica de ingresos netos por sede</p>
           </div>
         </div>
       </div>
 
-      <div className="h-[320px] w-full">
+      <div className="h-[280px] sm:h-[320px] w-full min-w-0">
         {(!data || data.length === 0) ? (
-          <div className="flex justify-center items-center h-full text-[#877571] text-sm">
+          <div className="flex justify-center items-center h-full text-[#877571] text-xs sm:text-sm">
             No hay suficiente historial mensual registrado para graficar la tendencia.
           </div>
         ) : (
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0}>
             <AreaChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
               <defs>
                 {activeSedes.map((sede, idx) => {
                   const color = SEDE_COLORS[sede] || FALLBACK_COLORS[idx % FALLBACK_COLORS.length]
+                  const safeKey = String(sede).replace(/[^a-zA-Z0-9]/g, '_')
                   return (
-                    <linearGradient key={sede} id={`colorGrad_${sede.replace(/\s+/g, '_')}`} x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient key={safeKey} id={`colorGrad_${safeKey}`} x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor={color} stopOpacity={0.3} />
                       <stop offset="95%" stopColor={color} stopOpacity={0.0} />
                     </linearGradient>
@@ -51,34 +54,35 @@ export function TrendChart({ data, sedes }) {
                 dataKey="name" 
                 axisLine={false} 
                 tickLine={false} 
-                tick={{ fill: '#877571', fontSize: 12, fontFamily: 'Karla' }} 
+                tick={{ fill: '#877571', fontSize: 11, fontFamily: 'Karla' }} 
                 dy={10} 
               />
               <YAxis 
                 axisLine={false} 
                 tickLine={false} 
-                tick={{ fill: '#877571', fontSize: 12, fontFamily: 'Karla' }} 
+                tick={{ fill: '#877571', fontSize: 11, fontFamily: 'Karla' }} 
                 tickFormatter={(v) => `S/ ${v}`}
               />
               <Tooltip 
                 cursor={{ stroke: '#D8CBC5', strokeWidth: 1, strokeDasharray: '4 4' }}
                 formatter={(val) => [fmt(val), '']}
-                contentStyle={{ borderRadius: '12px', border: '1px solid #E9DFD9', boxShadow: '0 10px 15px -3px rgba(58, 15, 15, 0.08)' }}
+                contentStyle={{ borderRadius: '12px', border: '1px solid #E9DFD9', boxShadow: '0 10px 15px -3px rgba(58, 15, 15, 0.08)', fontSize: '12px' }}
               />
-              <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
+              <Legend iconType="circle" wrapperStyle={{ paddingTop: '15px', fontSize: '12px' }} />
               
               {activeSedes.map((sede, idx) => {
                 const color = SEDE_COLORS[sede] || FALLBACK_COLORS[idx % FALLBACK_COLORS.length]
+                const safeKey = String(sede).replace(/[^a-zA-Z0-9]/g, '_')
                 return (
                   <Area 
-                    key={sede}
+                    key={safeKey}
                     type="monotone" 
                     dataKey={sede} 
                     name={sede} 
                     stroke={color} 
-                    strokeWidth={3}
+                    strokeWidth={2.5}
                     fillOpacity={1} 
-                    fill={`url(#colorGrad_${sede.replace(/\s+/g, '_')})`} 
+                    fill={`url(#colorGrad_${safeKey})`} 
                   />
                 )
               })}
