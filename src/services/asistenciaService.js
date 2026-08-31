@@ -86,6 +86,37 @@ export const asistenciaService = {
   },
 
   /**
+   * Obtiene el historial consolidado de marcaciones en un rango de fechas
+   */
+  getHistorialMarcaciones: async ({ sedeId, fechaInicio, fechaFin, usuarioId = null }) => {
+    let query = supabase
+      .from('asistencia_marcaciones')
+      .select('*, usuarios(id, nombre_completo, roles)')
+      .order('fecha', { ascending: false })
+      .order('hora_evento', { ascending: true })
+
+    if (sedeId) {
+      query = query.eq('sede_id', sedeId)
+    }
+
+    if (fechaInicio) {
+      query = query.gte('fecha', fechaInicio)
+    }
+
+    if (fechaFin) {
+      query = query.lte('fecha', fechaFin)
+    }
+
+    if (usuarioId && usuarioId !== 'ALL') {
+      query = query.eq('usuario_id', usuarioId)
+    }
+
+    const { data, error } = await query
+    if (error) throw error
+    return data || []
+  },
+
+  /**
    * Obtiene los turnos programados configurados para la sede
    */
   getTurnosProgramados: async (sedeId) => {

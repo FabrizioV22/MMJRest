@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { Clock, Calendar, Smartphone, RefreshCw, ShieldCheck, X, Loader2 } from 'lucide-react'
+import { createPortal } from 'react-dom'
+import { Clock, Calendar, Smartphone, RefreshCw, ShieldCheck, X, Loader2, BarChart2 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useSede } from '../../context/SedeContext'
 import { useToast } from '../../context/ToastContext'
@@ -9,7 +10,8 @@ import { AttendanceKpiGrid } from './components/AttendanceKpiGrid'
 import { LiveAttendanceTable } from './components/LiveAttendanceTable'
 import { MobilePunchCard } from './components/MobilePunchCard'
 import { PrivacyConsentModal } from './components/PrivacyConsentModal'
-import { ShiftSchedulerModal } from './components/ShiftSchedulerModal'
+import { ShiftSchedulerView } from './components/ShiftSchedulerView'
+import { AttendanceHistoryView } from './components/AttendanceHistoryView'
 
 export function AsistenciaModule() {
   const { userProfile, setUserProfile, refreshProfile } = useAuth()
@@ -24,7 +26,6 @@ export function AsistenciaModule() {
 
   // Modales
   const [isConsentOpen, setIsConsentOpen] = useState(false)
-  const [isShiftModalOpen, setIsShiftModalOpen] = useState(false)
   const [justifyItem, setJustifyItem] = useState(null)
   const [justifyObs, setJustifyObs] = useState('')
 
@@ -55,14 +56,12 @@ export function AsistenciaModule() {
       const scheduledToday = allShifts.filter(s => s.dia_semana === targetDayOfWeek)
 
       // 5. Mapear la tabla de supervisión en tiempo real
-      // Agrupar marcaciones por usuario
       const marksByUser = new Map()
       marks.forEach(m => {
         if (!marksByUser.has(m.usuario_id)) marksByUser.set(m.usuario_id, [])
         marksByUser.get(m.usuario_id).push(m)
       })
 
-      // Generar lista combinada (programados + no programados que marcaron)
       const userMap = new Map()
       sedeUsers.forEach(u => userMap.set(u.id, u))
 
@@ -216,7 +215,6 @@ export function AsistenciaModule() {
         await asistenciaService.guardarTurnoProgramado(shiftPayload)
         toast.success('Horario asignado con éxito.')
       }
-      setIsShiftModalOpen(false)
       await loadData()
     } catch (err) {
       console.error('Error al guardar turno:', err)
@@ -261,8 +259,8 @@ export function AsistenciaModule() {
   }
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12 animate-in fade-in duration-300">
-      {/* Header & Tabs */}
+    <div className="space-y-6 max-w-7xl mx-auto pb-12 animate-in fade-in duration-200">
+      {/* Header & Navigation Tabs */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E9DFD9] pb-4">
         <div>
           <div className="flex items-center space-x-2">
@@ -274,29 +272,55 @@ export function AsistenciaModule() {
             </span>
           </div>
           <p className="text-xs text-[#877571] mt-0.5">
-            Supervisión de puntualidad, refrigerios y cumplimiento de jornada laboral
+            Supervisión en vivo, gestión de turnos semanales y reportes de puntualidad
           </p>
         </div>
 
-        {/* Tab Selector */}
-        <div className="flex flex-wrap items-center gap-2">
+        {/* Tab Selector Responsivo */}
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
           {isAdmin && (
-            <button
-              onClick={() => setActiveTab('SUPERVISION')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center space-x-1.5 ${
-                activeTab === 'SUPERVISION'
-                  ? 'bg-[#A80F14] text-white shadow-md'
-                  : 'bg-white text-[#5D4B47] hover:bg-[#FAF7F4] border border-[#D8CBC5]'
-              }`}
-            >
-              <Clock size={15} />
-              <span>Supervisión en Vivo</span>
-            </button>
+            <>
+              <button
+                onClick={() => setActiveTab('SUPERVISION')}
+                className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center space-x-1.5 ${
+                  activeTab === 'SUPERVISION'
+                    ? 'bg-[#A80F14] text-white shadow-md'
+                    : 'bg-white text-[#5D4B47] hover:bg-[#FAF7F4] border border-[#D8CBC5]'
+                }`}
+              >
+                <Clock size={15} />
+                <span>En Vivo</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('HORARIOS')}
+                className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center space-x-1.5 ${
+                  activeTab === 'HORARIOS'
+                    ? 'bg-[#A80F14] text-white shadow-md'
+                    : 'bg-white text-[#5D4B47] hover:bg-[#FAF7F4] border border-[#D8CBC5]'
+                }`}
+              >
+                <Calendar size={15} />
+                <span>Horarios Semanales</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('HISTORIAL')}
+                className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center space-x-1.5 ${
+                  activeTab === 'HISTORIAL'
+                    ? 'bg-[#A80F14] text-white shadow-md'
+                    : 'bg-white text-[#5D4B47] hover:bg-[#FAF7F4] border border-[#D8CBC5]'
+                }`}
+              >
+                <BarChart2 size={15} />
+                <span>Historial y Reportes</span>
+              </button>
+            </>
           )}
 
           <button
             onClick={() => setActiveTab('MI_MARCACION')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center space-x-1.5 ${
+            className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center space-x-1.5 ${
               activeTab === 'MI_MARCACION'
                 ? 'bg-[#A80F14] text-white shadow-md'
                 : 'bg-white text-[#5D4B47] hover:bg-[#FAF7F4] border border-[#D8CBC5]'
@@ -305,16 +329,6 @@ export function AsistenciaModule() {
             <Smartphone size={15} />
             <span>Mi Marcación</span>
           </button>
-
-          {isAdmin && (
-            <button
-              onClick={() => setIsShiftModalOpen(true)}
-              className="px-4 py-2 bg-white text-[#5D4B47] hover:bg-[#FAF7F4] border border-[#D8CBC5] rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center space-x-1.5"
-            >
-              <Calendar size={15} />
-              <span>Turnos y Horarios</span>
-            </button>
-          )}
 
           <button
             onClick={loadData}
@@ -326,17 +340,17 @@ export function AsistenciaModule() {
         </div>
       </div>
 
-      {/* Vista de Supervisión en Vivo */}
+      {/* 🔴 TAB 1: Vista de Supervisión en Vivo */}
       {activeTab === 'SUPERVISION' && (
-        <div className="space-y-6">
-          {/* KPIs */}
+        <div className="space-y-6 animate-in fade-in duration-200">
+          {/* KPIs del Día */}
           <AttendanceKpiGrid stats={kpiStats} />
 
-          {/* Filtro de Fecha */}
+          {/* Filtro de Fecha de Hoy / Consulta puntual */}
           <div className="flex flex-wrap justify-between items-center bg-white p-3.5 rounded-2xl border border-[#E9DFD9] shadow-xs gap-2">
             <div className="flex items-center space-x-2 text-xs font-bold text-[#5D4B47]">
-              <Calendar size={16} className="text-[#A80F14]" />
-              <span>Fecha de Consulta:</span>
+              <Clock size={16} className="text-[#A80F14]" />
+              <span>Día en Supervisión:</span>
             </div>
             <div className="flex items-center space-x-2">
               <button
@@ -372,9 +386,29 @@ export function AsistenciaModule() {
         </div>
       )}
 
-      {/* Vista de Marcación Personal */}
+      {/* 📅 TAB 2: Vista de Horarios Semanales (Rediseño Limpio) */}
+      {activeTab === 'HORARIOS' && isAdmin && (
+        <ShiftSchedulerView
+          shifts={shifts}
+          users={usersList}
+          activeSede={activeSede}
+          onSaveShift={handleSaveShift}
+          onDeleteShift={handleDeleteShift}
+          isSubmitting={isSubmitting}
+        />
+      )}
+
+      {/* 📊 TAB 3: Historial y Reportes (Consolidado por Rango + Exportación CSV) */}
+      {activeTab === 'HISTORIAL' && isAdmin && (
+        <AttendanceHistoryView
+          activeSede={activeSede}
+          users={usersList}
+        />
+      )}
+
+      {/* 📱 TAB 4: Vista de Marcación Personal */}
       {activeTab === 'MI_MARCACION' && (
-        <div className="py-4">
+        <div className="py-4 animate-in fade-in duration-200">
           <MobilePunchCard
             activeSede={activeSede}
             userProfile={userProfile}
@@ -394,24 +428,12 @@ export function AsistenciaModule() {
         isSubmitting={isSubmitting}
       />
 
-      {/* Modal de Programación de Turnos */}
-      <ShiftSchedulerModal
-        isOpen={isShiftModalOpen}
-        onClose={() => setIsShiftModalOpen(false)}
-        users={usersList}
-        shifts={shifts}
-        activeSede={activeSede}
-        onSaveShift={handleSaveShift}
-        onDeleteShift={handleDeleteShift}
-        isSubmitting={isSubmitting}
-      />
-
-      {/* Modal de Justificación de Tardanza */}
-      {justifyItem && (
-        <div className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
-          <div className="bg-white rounded-t-3xl sm:rounded-2xl max-w-md w-full shadow-2xl border border-[#E9DFD9] animate-in fade-in slide-in-from-bottom-6 sm:zoom-in-95 duration-200 overflow-hidden flex flex-col max-h-[92dvh] sm:max-h-[85vh]">
+      {/* Modal de Justificación de Tardanza con createPortal */}
+      {justifyItem && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-[#E9DFD9] animate-in zoom-in-95 duration-200 overflow-hidden flex flex-col my-auto max-h-[92dvh]">
             {/* Cabecera */}
-            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-[#E9DFD9] shrink-0 bg-white">
+            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-[#E9DFD9] bg-[#FAF7F4] shrink-0">
               <div className="flex items-center space-x-3">
                 <div className="p-2.5 bg-blue-50 text-blue-800 rounded-xl border border-blue-200 shrink-0">
                   <ShieldCheck size={22} />
@@ -427,14 +449,14 @@ export function AsistenciaModule() {
               </div>
               <button
                 onClick={() => setJustifyItem(null)}
-                className="p-2 text-[#877571] hover:bg-[#FAF7F4] rounded-full cursor-pointer transition-colors"
+                className="p-2 text-[#877571] hover:bg-black/5 rounded-full cursor-pointer transition-colors"
               >
                 <X size={18} />
               </button>
             </div>
 
             {/* Cuerpo */}
-            <div className="p-4 sm:p-5 space-y-3 overflow-y-auto flex-1 overscroll-contain">
+            <div className="p-5 space-y-3 overflow-y-auto flex-1">
               <div>
                 <label className="block text-xs font-bold text-[#5D4B47] uppercase tracking-wider mb-1.5">
                   Motivo / Observación de la Justificación
@@ -452,8 +474,8 @@ export function AsistenciaModule() {
               </p>
             </div>
 
-            {/* Footer con elevación táctil en móvil */}
-            <div className="p-4 sm:p-5 pb-8 sm:pb-5 border-t border-[#E9DFD9] bg-[#FAF7F4] flex items-center space-x-2.5 shrink-0">
+            {/* Footer con Botones Grandes */}
+            <div className="p-4 sm:p-5 border-t border-[#E9DFD9] bg-[#FAF7F4] flex items-center space-x-2.5 shrink-0">
               <button
                 onClick={() => setJustifyItem(null)}
                 disabled={isSubmitting}
@@ -475,7 +497,8 @@ export function AsistenciaModule() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )
