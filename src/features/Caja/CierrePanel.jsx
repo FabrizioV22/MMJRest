@@ -106,18 +106,26 @@ export function CierrePanel({
 
             {/* Entradas y salidas físicas reales */}
             <div className="space-y-1 text-xs pt-1 border-t border-white/10">
+              <div className="flex justify-between items-center text-[#D8CBC5]">
+                <span>🏦 Fondo Inicial:</span>
+                <span className="font-bold text-[#E7C77A] tabular-nums">S/ {fmt(turno?.monto_apertura)}</span>
+              </div>
               <div className="flex justify-between items-center">
                 <span className="text-[#D8CBC5]">💵 Efectivo de Ventas:</span>
-                <span className="font-bold text-[#FFF9F0] tabular-nums">S/ {fmt(ventasEfectivo)}</span>
+                <span className="font-bold text-[#FFF9F0] tabular-nums">+ S/ {fmt(ventasEfectivo)}</span>
               </div>
-              <div className="flex justify-between items-center text-emerald-400">
-                <span>+ Extras en Efectivo:</span>
-                <span className="font-bold tabular-nums">+ S/ {fmt(extrasEfectivo)}</span>
-              </div>
-              <div className="flex justify-between items-center text-rose-400">
-                <span>− Gastos en Efectivo:</span>
-                <span className="font-bold tabular-nums">− S/ {fmt(gastosEfectivo)}</span>
-              </div>
+              {Number(extrasEfectivo) > 0 && (
+                <div className="flex justify-between items-center text-emerald-400">
+                  <span>+ Extras en Efectivo:</span>
+                  <span className="font-bold tabular-nums">+ S/ {fmt(extrasEfectivo)}</span>
+                </div>
+              )}
+              {Number(gastosEfectivo) > 0 && (
+                <div className="flex justify-between items-center text-rose-400">
+                  <span>− Gastos en Efectivo:</span>
+                  <span className="font-bold tabular-nums">− S/ {fmt(gastosEfectivo)}</span>
+                </div>
+              )}
               {Number(propinasEfectivo) > 0 && (
                 <div className="flex justify-between items-center text-amber-300">
                   <span>− Propinas en Efectivo:</span>

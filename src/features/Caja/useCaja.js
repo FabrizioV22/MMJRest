@@ -157,16 +157,19 @@ export function useCaja() {
     .reduce((acc, p) => acc + (Number(p.monto) || 0), 0)
   const totalPropinas = propinasEfectivo + propinasDigital
 
-  // EFECTIVO ESPERADO EN CAJA FÍSICA:
-  // Solo suma/resta lo que ocurre físicamente en el cajón:
+  // Fondo inicial de apertura
+  const montoAperturaNum = turnoActivo ? Number(turnoActivo.monto_apertura || 0) : 0
+
+  // EFECTIVO ESPERADO EN GAVETA FÍSICA:
+  // Fondo Inicial + Ventas en Efectivo + Extras en Efectivo - Gastos en Efectivo - Propinas en Efectivo
+  // Se calcula el flujo real completo permitiendo resultados negativos si el gasto superó el efectivo disponible
   const montoEsperado = turnoActivo
-    ? Math.max(0, ventasEfectivo + extrasEfectivo - gastosEfectivo - propinasEfectivo)
+    ? (montoAperturaNum + ventasEfectivo + extrasEfectivo - gastosEfectivo - propinasEfectivo)
     : 0
   const diferencia = totalEfectivo - montoEsperado
 
-  // Ventas reales en efectivo para registrar en la base de datos (excluye el fondo inicial para no inflar Finanzas):
-  const montoAperturaNum = turnoActivo ? Number(turnoActivo.monto_apertura || 0) : 0
-  const realVentasEfectivo = Math.max(0, ventasEfectivo - montoAperturaNum)
+  // Ventas reales en efectivo para registrar en la base de datos (Ingreso real generado por ventas en efectivo)
+  const realVentasEfectivo = ventasEfectivo
 
   // ── Acciones ──
   const handleAbrirCaja = async (e) => {
